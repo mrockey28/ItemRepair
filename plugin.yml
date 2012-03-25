@@ -1,0 +1,40 @@
+name: AutoRepair
+main: com.mrockey28.bukkit.ItemRepair.AutoRepairPlugin
+version: 1.8
+authors: [Only_Mostly_Dead, lostaris]
+depend: [Vault]
+softdepend: [PermissionsBukkit]
+commands:
+  repair:
+    description: uses one or more items to repair a tool or armour
+    aliases: rep
+    usage: |
+      Incorrect usage of command /<command>.
+      Proper usage of /<command>
+       '/<command> [itemslot 1-9]' repair item.
+       '/<command> [itemslot 1-9] ?' Check required repair materials.
+       '/<command> [itemslot 1-9] dmg' Check number of uses left.
+       '/<command> <?,dmg> as above but for current item.
+       '/<command> arm' repairs all your equipped armour.
+       '/<command> arm ?' Check armour repair materials.
+       '/<command> reload' Reloads the config files.
+       
+permissions:
+  AutoRepair.access:
+    description: Gives access to all AutoRepair commands
+    default: false
+  AutoRepair.info:
+    description: Allows use of the ? and dmg commands
+    default: false
+  AutoRepair.warn:
+    description: Allows warning when a tool is about to break
+    default: false
+  AutoRepair.repair:
+    description: Allows use of the repair command
+    default: false
+  AutoRepair.auto:
+    description: Allows autorepair to work on users' items
+    default: false
+  AutoRepair.reload:
+    description: Allows use of the reload command, to reload the config files
+    default: false
