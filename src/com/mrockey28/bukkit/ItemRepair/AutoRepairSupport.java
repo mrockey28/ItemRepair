@@ -16,6 +16,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
+import com.mrockey28.bukkit.ItemRepair.AutoRepairPlugin.operationType;
+
 
 /**
  * 
@@ -33,7 +35,24 @@ public class AutoRepairSupport {
 	private boolean warning = false;
 	private boolean lastWarning = false;
 
-	public void toolReq(ItemStack tool) {
+	private float CalcPercentUsed(ItemStack tool, int durability)
+	{
+			float percentUsed = -1;
+			percentUsed = (float)tool.getDurability() / (float)durability;
+			return percentUsed;
+	}
+	
+	public boolean accountForRoundingType (int slot, ArrayList<ItemStack> req, String itemName)
+	{
+
+		return true;
+	}
+	
+	public void toolReq(ItemStack tool, int slot) {
+		
+		doRepairOperation(tool, slot, operationType.QUERY);
+		/*
+		
 		//if (!AutoRepairPlugin.isPermissions || AutoRepairPlugin.Permissions.has(player, "AutoRepair.info")) {
 		if (AutoRepairPlugin.isAllowed(player, "info")) {
 			String toolString = tool.getType().toString();
@@ -70,9 +89,227 @@ public class AutoRepairSupport {
 		} else {
 			player.sendMessage("§cYou dont have permission to do the ? or dmg commands.");
 		}
+		*/
 	}
 
+	
+	public void deduct(ArrayList<ItemStack> req) {
+		PlayerInventory inven = player.getInventory();
+		for (int i =0; i < req.size(); i++) {
+			ItemStack currItem = new ItemStack(req.get(i).getTypeId(), req.get(i).getAmount());
+			int neededAmount = req.get(i).getAmount();
+			int smallestSlot = findSmallest(currItem);
+			if (smallestSlot != -1) {
+				while (neededAmount > 0) {									
+					smallestSlot = findSmallest(currItem);
+					ItemStack smallestItem = inven.getItem(smallestSlot);
+					if (neededAmount < smallestItem.getAmount()) {
+						// got enough in smallest stack deal and done
+						ItemStack newSize = new ItemStack(currItem.getType(), smallestItem.getAmount() - neededAmount);
+						inven.setItem(smallestSlot, newSize);
+						neededAmount = 0;										
+					} else {
+						// need to remove from more than one stack, deal and continue
+						neededAmount -= smallestItem.getAmount();
+						inven.clear(smallestSlot);
+					}
+				}
+			}
+		}
+	}
+	
+	public void doRepairOperation(ItemStack tool, int slot, AutoRepairPlugin.operationType op)
+	{
+		double balance = AutoRepairPlugin.econ.getBalance(player.getName());
+		if (!AutoRepairPlugin.isOpAllowed(getPlayer(), op)) {
+			return;
+		}
+		if (op == operationType.WARN && !AutoRepairPlugin.isRepairCosts() && !AutoRepairPlugin.isAutoRepair()) {
+			player.sendMessage("§6WARNING: " + tool.getType() + " will break soon");
+		}
+		if (op == operationType.WARN && !warning) warning = true;					
+		else if (op == operationType.WARN) return;
+
+
+		PlayerInventory inven = getPlayer().getInventory();
+		HashMap<String, ArrayList<ItemStack> > recipies = AutoRepairPlugin.getRepairRecipies();
+		String itemName = Material.getMaterial(tool.getTypeId()).toString();
+		HashMap<String, Integer> durabilities = AutoRepairPlugin.getDurabilityCosts();
+		ArrayList<ItemStack> req = new ArrayList<ItemStack>(recipies.get(itemName).size());	
+		ArrayList<ItemStack> neededItems = new ArrayList<ItemStack>(0);
+		
+		//do a deep copy of the required items list so we can modify it temporarily for rounding purposes
+		for (ItemStack i: recipies.get(itemName)) {
+		  req.add((ItemStack)i.clone());
+		}
+			
+		String toolString = tool.getType().toString();
+		int durability = durabilities.get(itemName);
+		double cost = 0;
+		if (AutoRepairPlugin.getiConCosts().containsKey(toolString)) {
+			cost = (double)AutoRepairPlugin.getiConCosts().get(itemName);
+		}
+		else
+		{
+			player.sendMessage("§cThis item is not in the AutoRepair database.");
+			return;
+		}
+
+		//do rounding based on dmg already done to item, if called for by config
+		if (op != operationType.AUTO_REPAIR && AutoRepairPlugin.rounding != "flat")
+		{
+			
+			float percentUsed = CalcPercentUsed(inven.getItem(slot), durability);
+			for (int index = 0; index < req.size(); index++) {
+				float amnt = req.get(index).getAmount();
+				int amntInt;
+				
+				amnt = amnt * percentUsed;
+				cost = cost * percentUsed;
+				amnt = Math.round(amnt);
+				amntInt = (int)amnt;
+				if (AutoRepairPlugin.rounding == "min")
+				{
+					if (amntInt == 0)
+					{
+						amntInt = 1;
+					}
+				}
+				req.get(index).setAmount(amntInt);
+					
+			}
+		}
+		try {
+			//No repair costs
+			if (!AutoRepairPlugin.isRepairCosts()) {
+				switch (op)
+				{
+					case WARN:
+						break;
+					case AUTO_REPAIR:
+					case MANUAL_REPAIR:
+						getPlayer().sendMessage("§3Repaired " + itemName);
+						inven.setItem(slot, repItem(tool));
+						break;
+					case QUERY:
+						getPlayer().sendMessage("§3No materials needed to repair.");
+						break;
+						
+				}
+				
+			}
+			
+			//Using economy to pay only
+			else if (AutoRepairPlugin.getiSICon().compareToIgnoreCase("true") == 0)
+			{
+				switch (op)
+				{	case QUERY:
+						player.sendMessage("§6It costs " +  AutoRepairPlugin.econ.format((double)cost)
+							+ " to repair " + tool.getType());
+						break;
+					case AUTO_REPAIR:
+					case MANUAL_REPAIR:
+						if (cost <= balance) {
+							//balance = iConomy.db.get_balance(player.getName());
+							AutoRepairPlugin.econ.withdrawPlayer(player.getName(), cost);
+							player.sendMessage("§3Using " + AutoRepairPlugin.econ.format((double)cost) + " to repair " + itemName);
+							//inven.setItem(slot, repItem(tool));
+							inven.setItem(slot, repItem(tool));
+						} else {
+							iConWarn(itemName, cost);
+						}
+						break;
+					case WARN:
+						if (cost > balance) {
+							if (!AutoRepairPlugin.isAutoRepair()) player.sendMessage("§6WARNING: " + tool.getType() + " will break soon, no auto repairing!");
+							else player.sendMessage("§6WARNING: " + tool.getType() + " will break soon");
+							iConWarn(toolString, cost);
+						}	
+						break;
+				} 
+			} 
+			
+			//Using both economy and item costs to pay
+			else if (AutoRepairPlugin.getiSICon().compareToIgnoreCase("both") == 0) 
+			{	
+				switch (op)
+				{
+					case QUERY:
+						player.sendMessage("§6To repair " + tool.getType() + " you need: " 
+								+ AutoRepairPlugin.econ.format((double)AutoRepairPlugin.getiConCosts().get(toolString)) + " and");
+						player.sendMessage("§6" + printFormatReqs(AutoRepairPlugin.getRepairRecipies().get(toolString)));
+						break;
+					case AUTO_REPAIR:
+					case MANUAL_REPAIR:
+						if (cost <= balance && isEnoughItems(req, neededItems)) {
+							//balance = iConomy.db.get_balance(player.getName());
+							AutoRepairPlugin.econ.withdrawPlayer(player.getName(), cost);
+							deduct(req);
+							player.sendMessage("§3Using " + AutoRepairPlugin.econ.format((double)cost) + " and");
+							player.sendMessage("§3" + printFormatReqs(req) + " to repair "  + itemName);
+							inven.setItem(slot, repItem(tool));
+						} else {
+							if (op == operationType.MANUAL_REPAIR || !getLastWarning()) {
+								if (AutoRepairPlugin.isAllowed(player, "warn")) {
+									bothWarn(itemName, cost, req);					
+								}
+								if (op == operationType.AUTO_REPAIR) setLastWarning(true);							
+							}
+						}
+						break;
+					case WARN:
+							if (cost > balance || !isEnoughItems(req, neededItems)) {
+								if (!AutoRepairPlugin.isAutoRepair()) player.sendMessage("§6WARNING: " + tool.getType() + " will break soon, no auto repairing!");
+								else player.sendMessage("§6WARNING: " + tool.getType() + " will break soon");
+								bothWarn(toolString, cost, req);
+							}
+						break;
+				}
+			} 
+			
+			//Just using item costs to pay
+			else 
+			{
+				switch (op)
+				{
+					case QUERY:
+						player.sendMessage("§6To repair " + tool.getType() + " you need:");
+						player.sendMessage("§6" + printFormatReqs(AutoRepairPlugin.getRepairRecipies().get(toolString)));
+						break;
+					case AUTO_REPAIR:
+					case MANUAL_REPAIR:
+						if (isEnoughItems(req, neededItems)) {
+							deduct(req);
+							player.sendMessage("§3Using " + printFormatReqs(req) + " to repair " + itemName);
+							inven.setItem(slot, repItem(tool));
+						} else {
+							if (op == operationType.MANUAL_REPAIR || !getLastWarning()) {
+								if (AutoRepairPlugin.isAllowed(player, "warn")) {
+									justItemsWarn(itemName, req);					
+								}
+								if (op == operationType.AUTO_REPAIR) setLastWarning(true);							
+							}
+						}
+						break;
+					case WARN:
+						if (!AutoRepairPlugin.isAutoRepair()) player.sendMessage("§6WARNING: " + tool.getType() + " will break soon, no auto repairing!");
+						else player.sendMessage("§6WARNING: " + tool.getType() + " will break soon");
+						System.out.println(toolString + " " + AutoRepairPlugin.getRepairRecipies().get(toolString));
+						justItemsWarn(toolString, req);
+						break;
+				
+				}
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public void repairWarn(ItemStack tool, int slot) {
+		
+		doRepairOperation(tool, slot, operationType.WARN);
+		/*
 		if (!AutoRepairPlugin.isAllowed(player, "warn")) { 
 			return;
 		}
@@ -91,26 +328,43 @@ public class AutoRepairSupport {
 						// if there is repair costs  and no auto repair
 					} else if (AutoRepairPlugin.isRepairCosts() && !AutoRepairPlugin.isAutoRepair()) {	
 						double balance;
-						if (AutoRepairPlugin.getiSICon().compareToIgnoreCase("true") == 0){
+						
+						//just economy
+						if (AutoRepairPlugin.getiSICon().compareToIgnoreCase("true") == 0)
+						{
 							int cost = AutoRepairPlugin.getiConCosts().get(toolString);
 							balance = AutoRepairPlugin.econ.getBalance(player.getName());
 							if (cost > balance) {
 								player.sendMessage("§6WARNING: " + tool.getType() + " will break soon, no auto repairing");
 								iConWarn(toolString, cost);
 							}							
-						} else if (AutoRepairPlugin.getiSICon().compareToIgnoreCase("both") == 0) {
+						} else  {
 							int cost = AutoRepairPlugin.getiConCosts().get(toolString);
-							ArrayList<ItemStack> reqItems = AutoRepairPlugin.getRepairRecipies().get(toolString);
-							balance = AutoRepairPlugin.econ.getBalance(player.getName());
-							if (cost > balance || !isEnoughItems(reqItems)) {
-								player.sendMessage("§6WARNING: " + tool.getType() + " will break soon, no auto repairing");
-								bothWarn(toolString, cost, reqItems);
+							ArrayList<ItemStack> reqItems = new ArrayList<ItemStack>(AutoRepairPlugin.getRepairRecipies().get(toolString).size());	
+							for (ItemStack i: AutoRepairPlugin.getRepairRecipies().get(toolString)) {
+							  reqItems.add((ItemStack)i.clone());
 							}
-						} else {
-							ArrayList<ItemStack> reqItems = AutoRepairPlugin.getRepairRecipies().get(toolString);
-							if (!isEnoughItems(reqItems)) {								
-							player.sendMessage("§6WARNING: " + tool.getType() + " will break soon, no auto repairing");
-							justItemsWarn(toolString, reqItems);
+							ArrayList<ItemStack> neededItems = new ArrayList<ItemStack>(0);
+						
+							accountForRoundingType (slot, reqItems, toolString);
+							
+							balance = AutoRepairPlugin.econ.getBalance(player.getName());
+							
+							//both economy and items
+							if (AutoRepairPlugin.getiSICon().compareToIgnoreCase("both") == 0)
+							{
+								if (cost > balance || !isEnoughItems(reqItems, neededItems)) {
+									player.sendMessage("§6WARNING: " + tool.getType() + " will break soon, no auto repairing");
+									bothWarn(toolString, cost, reqItems);
+								}
+							} 
+							//just items
+							else 
+							{
+								if (!isEnoughItems(reqItems, neededItems)) {								
+									player.sendMessage("§6WARNING: " + tool.getType() + " will break soon, no auto repairing");
+									justItemsWarn(toolString, reqItems);
+								}
 							}
 						}
 						
@@ -149,6 +403,7 @@ public class AutoRepairSupport {
 				e.printStackTrace();
 			}
 		}
+		*/
 	}
 
 	public boolean repArmourInfo(String query) {
@@ -310,13 +565,14 @@ public class AutoRepairSupport {
 		return enoughItemFlag;
 	}
 
-	public boolean isEnoughItems (ArrayList<ItemStack> req) {
+	public boolean isEnoughItems (ArrayList<ItemStack> req, ArrayList<ItemStack> neededItems) {
 		boolean enough = true;
 		for (int i =0; i<req.size(); i++) {
 			ItemStack currItem = new ItemStack(req.get(i).getTypeId(), req.get(i).getAmount());
 			int neededAmount = req.get(i).getAmount();
 			int currTotal = getTotalItems(currItem);
 			if (neededAmount > currTotal) {
+				neededItems.add(req.get(i).clone());
 				enough = false;
 			}
 		}

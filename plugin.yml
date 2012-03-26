@@ -21,7 +21,7 @@ commands:
        
 permissions:
   AutoRepair.access:
-    description: Gives access to all AutoRepair commands
+    description: Necessary for access to any repair commands 
     default: false
   AutoRepair.info:
     description: Allows use of the ? and dmg commands

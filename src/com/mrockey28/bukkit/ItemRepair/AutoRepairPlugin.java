@@ -24,7 +24,7 @@ import net.milkbowl.vault.economy.EconomyResponse;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-//import com.nijikokun.bukkit.iConomy.iConomy;
+
 
 
 /**
@@ -51,6 +51,14 @@ public class AutoRepairPlugin extends JavaPlugin {
 	public Repair repair = new Repair(this);
 
 
+	
+	public enum operationType {
+		QUERY,
+		WARN,
+		MANUAL_REPAIR,
+		AUTO_REPAIR
+	}
+	
 	//public AutoRepairPlugin(PluginLoader pluginLoader, Server instance, PluginDescriptionFile desc, File folder, File plugin, ClassLoader cLoader) {
 	//	      super(pluginLoader, instance, desc, folder, plugin, cLoader);
 		// TODO: Place any custom initialisation code here
@@ -138,7 +146,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 				try {
 					char repairList = split[0].charAt(0);					
 					if (repairList == '?') {						
-						support.toolReq(player.getItemInHand());
+						support.toolReq(player.getItemInHand(), player.getItemInHand().);
 					} else if (split[0].equalsIgnoreCase("dmg")) {						
 						support.durabilityLeft(inven.getItem(inven.getHeldItemSlot()));
 					} else if (split[0].equalsIgnoreCase("arm")) {						
@@ -178,7 +186,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 					itemSlot = Integer.parseInt(split[0]);
 					if (getRecipe == '?' && itemSlot >0 && itemSlot <=9) {
 						if (isAllowed(player, "info")) {
-							support.toolReq(inven.getItem(itemSlot-1) );
+							support.toolReq(inven.getItem(itemSlot-1), itemSlot-1 );
 						} else {
 							player.sendMessage("§cYou dont have permission to do the ? or dmg commands.");
 						}
@@ -207,10 +215,37 @@ public class AutoRepairPlugin extends JavaPlugin {
 		return false;
 	}
 
+	public static boolean isOpAllowed (Player payer, operationType op)
+	{
+		switch(op)
+		{
+			case QUERY:
+				if (!isAllowed(player, "info"))
+				{
+					getPlayer().sendMessage("§cYou dont have permission to do repair query commands.");
+					return false;
+				}
+				else return true;
+			case WARN:
+				if (!isAllowed(player, "warn")) return false;
+				else return true;
+			case MANUAL_REPAIR:
+				if (!isAllowed(player, "repair"))
+				{
+					getPlayer().sendMessage("§cYou dont have permission to do the repair command.");
+					return false;
+				}
+				else return true;
+			case AUTO_REPAIR:
+				if (!isAllowed(player, "auto")) return false;
+				else return true;		
+		}
+	}
+	
 	public static boolean isAllowed(Player player, String com) {		
 		boolean allowed = false;
 		if(isPermissions == true) {
-			if(player.hasPermission("AutoRepair."+com)) {
+			if(player.hasPermission("AutoRepair.access") && player.hasPermission("AutoRepair."+com)) {
 				log.info("Player has " +com+ " permission");
 				allowed = true;
 			} else {

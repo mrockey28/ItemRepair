@@ -9,6 +9,8 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
+import com.mrockey28.bukkit.ItemRepair.AutoRepairPlugin.operationType;
+
 
 public class Repair extends AutoRepairSupport{
 
@@ -17,15 +19,12 @@ public class Repair extends AutoRepairSupport{
 	public Repair(AutoRepairPlugin instance) {
 		super(instance, getPlayer());
 	}
-
-	private float CalcPercentUsed(ItemStack tool, int durability)
-	{
-			float percentUsed = -1;
-			percentUsed = (float)tool.getDurability() / (float)durability;
-			return percentUsed;
-	}
 	
 	public boolean manualRepair(ItemStack tool, int slot) {
+		
+		doRepairOperation(tool, slot, operationType.MANUAL_REPAIR);
+		return false;
+		/*
 		double balance;
 		if (!AutoRepairPlugin.isAllowed(getPlayer(), "repair")) {
 			getPlayer().sendMessage("§cYou dont have permission to do the repair command.");
@@ -34,7 +33,7 @@ public class Repair extends AutoRepairSupport{
 
 		PlayerInventory inven = getPlayer().getInventory();
 		HashMap<String, ArrayList<ItemStack> > recipies = AutoRepairPlugin.getRepairRecipies();
-		HashMap<String, Integer> durabilities = AutoRepairPlugin.getDurabilityCosts();
+		
 		String itemName = Material.getMaterial(tool.getTypeId()).toString();
 		
 		ArrayList<ItemStack> req = new ArrayList<ItemStack>(recipies.get(itemName).size());	
@@ -42,34 +41,11 @@ public class Repair extends AutoRepairSupport{
 		  req.add((ItemStack)i.clone());
 		}
 				
-		log.info("STUFF: " + recipies.get(itemName).get(0).getAmount() + recipies.get(itemName).get(1).getAmount());
-		int durability = durabilities.get(itemName);
+		
 		String toolString = tool.getType().toString();
 		
-		if (AutoRepairPlugin.rounding != "flat")
-		{
-			float percentUsed = CalcPercentUsed(inven.getItem(slot), durability);
-			for (int index = 0; index < req.size(); index++) {
-				float amnt = req.get(index).getAmount();
-				int amntInt;
-				
-				log.info("amnt needed:" +amnt);
-				amnt = amnt * percentUsed;
-				log.info("amnt before round:" + amnt);
-				amnt = Math.round(amnt);
-				amntInt = (int)amnt;
-				log.info("amnt after round: " + amnt + " percentUsed: " + percentUsed + " amntInt: " + amntInt);
-				if (AutoRepairPlugin.rounding == "min")
-				{
-					if (amntInt == 0)
-					{
-						amntInt = 1;
-					}
-				}
-				req.get(index).setAmount(amntInt);
-					
-			}
-		}
+		
+		accountForRoundingType (slot, req, itemName);
 
 		if (!AutoRepairPlugin.isRepairCosts()) {
 			getPlayer().sendMessage("§3Repaired " + itemName);
@@ -126,10 +102,15 @@ public class Repair extends AutoRepairSupport{
 			}
 		}
 
-		return false;		
+		return false;
+		*/		
 	}
 
 	public boolean autoRepairTool(ItemStack tool, int slot) {
+		
+		doRepairOperation(tool, slot, operationType.AUTO_REPAIR);
+		return false;
+		/*
 		double balance;
 		if (!AutoRepairPlugin.isAllowed(player, "auto")) { 
 			return false;
@@ -194,6 +175,7 @@ public class Repair extends AutoRepairSupport{
 			}
 		}
 		return false;
+		*/
 	}
 
 	public void repairArmour() {
@@ -267,30 +249,6 @@ public class Repair extends AutoRepairSupport{
 		if(inven.getLeggings().getTypeId() != 0 ) {inven.setLeggings(repItem(inven.getLeggings()));}
 	}
 
-	public void deduct(ArrayList<ItemStack> req) {
-		PlayerInventory inven = player.getInventory();
-		for (int i =0; i < req.size(); i++) {
-			ItemStack currItem = new ItemStack(req.get(i).getTypeId(), req.get(i).getAmount());
-			int neededAmount = req.get(i).getAmount();
-			int smallestSlot = findSmallest(currItem);
-			if (smallestSlot != -1) {
-				while (neededAmount > 0) {									
-					smallestSlot = findSmallest(currItem);
-					ItemStack smallestItem = inven.getItem(smallestSlot);
-					if (neededAmount < smallestItem.getAmount()) {
-						// got enough in smallest stack deal and done
-						ItemStack newSize = new ItemStack(currItem.getType(), smallestItem.getAmount() - neededAmount);
-						inven.setItem(smallestSlot, newSize);
-						neededAmount = 0;										
-					} else {
-						// need to remove from more than one stack, deal and continue
-						neededAmount -= smallestItem.getAmount();
-						inven.clear(smallestSlot);
-					}
-				}
-			}
-		}
-	}
 
 }
 
