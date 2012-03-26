@@ -30,7 +30,7 @@ import org.bukkit.command.CommandSender;
 /**
  * testing for Bukkit
  *
- * @author lostaris
+ * @author lostaris, mrockey28
  */
 public class AutoRepairPlugin extends JavaPlugin {
 	private final AutoRepairBlockListener blockListener = new AutoRepairBlockListener(this);
@@ -145,8 +145,8 @@ public class AutoRepairPlugin extends JavaPlugin {
 			} else if (split.length == 1) {
 				try {
 					char repairList = split[0].charAt(0);					
-					if (repairList == '?') {						
-						support.toolReq(player.getItemInHand(), player.getItemInHand().);
+					if (repairList == '?') {
+						support.toolReq(player.getItemInHand(), player.getInventory().getHeldItemSlot());
 					} else if (split[0].equalsIgnoreCase("dmg")) {						
 						support.durabilityLeft(inven.getItem(inven.getHeldItemSlot()));
 					} else if (split[0].equalsIgnoreCase("arm")) {						
@@ -215,14 +215,14 @@ public class AutoRepairPlugin extends JavaPlugin {
 		return false;
 	}
 
-	public static boolean isOpAllowed (Player payer, operationType op)
+	public static boolean isOpAllowed (Player player, operationType op)
 	{
 		switch(op)
 		{
 			case QUERY:
 				if (!isAllowed(player, "info"))
 				{
-					getPlayer().sendMessage("§cYou dont have permission to do repair query commands.");
+					player.sendMessage("§cYou dont have permission to do repair query commands.");
 					return false;
 				}
 				else return true;
@@ -232,14 +232,16 @@ public class AutoRepairPlugin extends JavaPlugin {
 			case MANUAL_REPAIR:
 				if (!isAllowed(player, "repair"))
 				{
-					getPlayer().sendMessage("§cYou dont have permission to do the repair command.");
+					
+					player.sendMessage("§cYou dont have permission to do the repair command.");
 					return false;
 				}
 				else return true;
 			case AUTO_REPAIR:
 				if (!isAllowed(player, "auto")) return false;
-				else return true;		
+				else return true;	
 		}
+		return false;
 	}
 	
 	public static boolean isAllowed(Player player, String com) {		

@@ -21,7 +21,7 @@ import com.mrockey28.bukkit.ItemRepair.AutoRepairPlugin.operationType;
 
 /**
  * 
- * @author lostaris
+ * @author lostaris, mrockey28
  */
 public class AutoRepairSupport {
 	private final AutoRepairPlugin plugin;
@@ -48,48 +48,8 @@ public class AutoRepairSupport {
 		return true;
 	}
 	
-	public void toolReq(ItemStack tool, int slot) {
-		
+	public void toolReq(ItemStack tool, int slot) {	
 		doRepairOperation(tool, slot, operationType.QUERY);
-		/*
-		
-		//if (!AutoRepairPlugin.isPermissions || AutoRepairPlugin.Permissions.has(player, "AutoRepair.info")) {
-		if (AutoRepairPlugin.isAllowed(player, "info")) {
-			String toolString = tool.getType().toString();
-			// just icon cost
-			if (AutoRepairPlugin.getiSICon().compareToIgnoreCase("true") == 0) {
-				if (AutoRepairPlugin.getiConCosts().containsKey(toolString)) {
-					player.sendMessage("§6It costs " +  AutoRepairPlugin.econ.format((double)AutoRepairPlugin.getiConCosts().get(toolString))
-							+ " to repair " + tool.getType());
-				}
-				
-				// icon cost and item cost
-			} else if (AutoRepairPlugin.getiSICon().compareToIgnoreCase("both") == 0) {
-				if (AutoRepairPlugin.getRepairRecipies().containsKey(toolString) &&
-						AutoRepairPlugin.getiConCosts().containsKey(toolString)) {
-					player.sendMessage("§6To repair " + tool.getType() + " you need: " 
-							+ AutoRepairPlugin.econ.format((double)AutoRepairPlugin.getiConCosts().get(toolString)) + " and");
-					player.sendMessage("§6" + printFormatReqs(AutoRepairPlugin.getRepairRecipies().get(toolString)));
-				}
-				// just item cost
-			} else if (AutoRepairPlugin.isRepairCosts()) {
-				//tests to see if the config file has a repair reference to the item they wish to repair
-				if (AutoRepairPlugin.getRepairRecipies().containsKey(toolString)) {
-					player.sendMessage("§6To repair " + tool.getType() + " you need:");
-					player.sendMessage("§6" + printFormatReqs(AutoRepairPlugin.getRepairRecipies().get(toolString)));
-				}
-			} else {
-				player.sendMessage("§3No materials needed to repair");
-				//return true;
-			} 
-			if (!AutoRepairPlugin.getRepairRecipies().containsKey(toolString)) {
-				player.sendMessage("§6This is not a tool.");
-			}
-
-		} else {
-			player.sendMessage("§cYou dont have permission to do the ? or dmg commands.");
-		}
-		*/
 	}
 
 	
@@ -220,9 +180,9 @@ public class AutoRepairSupport {
 						}
 						break;
 					case WARN:
+						if (!AutoRepairPlugin.isAutoRepair()) player.sendMessage("§6WARNING: " + tool.getType() + " will break soon, no auto repairing!");
 						if (cost > balance) {
-							if (!AutoRepairPlugin.isAutoRepair()) player.sendMessage("§6WARNING: " + tool.getType() + " will break soon, no auto repairing!");
-							else player.sendMessage("§6WARNING: " + tool.getType() + " will break soon");
+							player.sendMessage("§6WARNING: " + tool.getType() + " will break soon");
 							iConWarn(toolString, cost);
 						}	
 						break;
@@ -235,9 +195,10 @@ public class AutoRepairSupport {
 				switch (op)
 				{
 					case QUERY:
+						isEnoughItems(req, neededItems);
 						player.sendMessage("§6To repair " + tool.getType() + " you need: " 
-								+ AutoRepairPlugin.econ.format((double)AutoRepairPlugin.getiConCosts().get(toolString)) + " and");
-						player.sendMessage("§6" + printFormatReqs(AutoRepairPlugin.getRepairRecipies().get(toolString)));
+								+ AutoRepairPlugin.econ.format((double)cost) + " and");
+						player.sendMessage("§6" + printFormatReqs(neededItems));
 						break;
 					case AUTO_REPAIR:
 					case MANUAL_REPAIR:
@@ -251,17 +212,21 @@ public class AutoRepairSupport {
 						} else {
 							if (op == operationType.MANUAL_REPAIR || !getLastWarning()) {
 								if (AutoRepairPlugin.isAllowed(player, "warn")) {
-									bothWarn(itemName, cost, req);					
+									if (cost > balance && !isEnoughItems(req, neededItems)) bothWarn(itemName, cost, neededItems);
+									else if (cost > balance) iConWarn(itemName, cost);
+									else justItemsWarn(itemName, neededItems);
 								}
 								if (op == operationType.AUTO_REPAIR) setLastWarning(true);							
 							}
 						}
 						break;
 					case WARN:
-							if (cost > balance || !isEnoughItems(req, neededItems)) {
-								if (!AutoRepairPlugin.isAutoRepair()) player.sendMessage("§6WARNING: " + tool.getType() + " will break soon, no auto repairing!");
-								else player.sendMessage("§6WARNING: " + tool.getType() + " will break soon");
-								bothWarn(toolString, cost, req);
+							if (!AutoRepairPlugin.isAutoRepair()) player.sendMessage("§6WARNING: " + tool.getType() + " will break soon, no auto repairing!");
+							else if (cost > balance || !isEnoughItems(req, neededItems)) {
+								player.sendMessage("§6WARNING: " + tool.getType() + " will break soon");
+								if (cost > balance && !isEnoughItems(req, neededItems)) bothWarn(itemName, cost, neededItems);
+								else if (cost > balance) iConWarn(itemName, cost);
+								else justItemsWarn(itemName, neededItems);
 							}
 						break;
 				}
@@ -273,8 +238,9 @@ public class AutoRepairSupport {
 				switch (op)
 				{
 					case QUERY:
+						isEnoughItems(req, neededItems);
 						player.sendMessage("§6To repair " + tool.getType() + " you need:");
-						player.sendMessage("§6" + printFormatReqs(AutoRepairPlugin.getRepairRecipies().get(toolString)));
+						player.sendMessage("§6" + printFormatReqs(neededItems));
 						break;
 					case AUTO_REPAIR:
 					case MANUAL_REPAIR:
@@ -293,9 +259,10 @@ public class AutoRepairSupport {
 						break;
 					case WARN:
 						if (!AutoRepairPlugin.isAutoRepair()) player.sendMessage("§6WARNING: " + tool.getType() + " will break soon, no auto repairing!");
-						else player.sendMessage("§6WARNING: " + tool.getType() + " will break soon");
-						System.out.println(toolString + " " + AutoRepairPlugin.getRepairRecipies().get(toolString));
-						justItemsWarn(toolString, req);
+						else if (!isEnoughItems(req, neededItems)) {
+							player.sendMessage("§6WARNING: " + tool.getType() + " will break soon");
+							justItemsWarn(toolString, neededItems);
+						}
 						break;
 				
 				}
@@ -307,103 +274,7 @@ public class AutoRepairSupport {
 	}
 	
 	public void repairWarn(ItemStack tool, int slot) {
-		
 		doRepairOperation(tool, slot, operationType.WARN);
-		/*
-		if (!AutoRepairPlugin.isAllowed(player, "warn")) { 
-			return;
-		}
-
-		HashMap<String, ArrayList<ItemStack>> repairRecipies;
-		if (!warning) {					
-			warning = true;		
-			try {				
-				repairRecipies = AutoRepairPlugin.getRepairRecipies();
-				String toolString = tool.getType().toString();
-				//tests to see if the config file has a repair reference to the item they wish to repair
-				if (repairRecipies.containsKey(toolString)) {
-					// there is no repair costs and no auto repair
-					if (!AutoRepairPlugin.isRepairCosts() && !AutoRepairPlugin.isAutoRepair()) {
-						player.sendMessage("§6WARNING: " + tool.getType() + " will break soon");
-						// if there is repair costs  and no auto repair
-					} else if (AutoRepairPlugin.isRepairCosts() && !AutoRepairPlugin.isAutoRepair()) {	
-						double balance;
-						
-						//just economy
-						if (AutoRepairPlugin.getiSICon().compareToIgnoreCase("true") == 0)
-						{
-							int cost = AutoRepairPlugin.getiConCosts().get(toolString);
-							balance = AutoRepairPlugin.econ.getBalance(player.getName());
-							if (cost > balance) {
-								player.sendMessage("§6WARNING: " + tool.getType() + " will break soon, no auto repairing");
-								iConWarn(toolString, cost);
-							}							
-						} else  {
-							int cost = AutoRepairPlugin.getiConCosts().get(toolString);
-							ArrayList<ItemStack> reqItems = new ArrayList<ItemStack>(AutoRepairPlugin.getRepairRecipies().get(toolString).size());	
-							for (ItemStack i: AutoRepairPlugin.getRepairRecipies().get(toolString)) {
-							  reqItems.add((ItemStack)i.clone());
-							}
-							ArrayList<ItemStack> neededItems = new ArrayList<ItemStack>(0);
-						
-							accountForRoundingType (slot, reqItems, toolString);
-							
-							balance = AutoRepairPlugin.econ.getBalance(player.getName());
-							
-							//both economy and items
-							if (AutoRepairPlugin.getiSICon().compareToIgnoreCase("both") == 0)
-							{
-								if (cost > balance || !isEnoughItems(reqItems, neededItems)) {
-									player.sendMessage("§6WARNING: " + tool.getType() + " will break soon, no auto repairing");
-									bothWarn(toolString, cost, reqItems);
-								}
-							} 
-							//just items
-							else 
-							{
-								if (!isEnoughItems(reqItems, neededItems)) {								
-									player.sendMessage("§6WARNING: " + tool.getType() + " will break soon, no auto repairing");
-									justItemsWarn(toolString, reqItems);
-								}
-							}
-						}
-						
-					} else {
-						
-						double balance;
-						if (AutoRepairPlugin.getiSICon().compareToIgnoreCase("true") == 0){
-							int cost = AutoRepairPlugin.getiConCosts().get(toolString);
-							balance = AutoRepairPlugin.econ.getBalance(player.getName());
-							if (cost > balance) {
-								player.sendMessage("§6WARNING: " + tool.getType() + " will break soon");
-								iConWarn(toolString, cost);
-							}							
-						} else if (AutoRepairPlugin.getiSICon().compareToIgnoreCase("both") == 0) {
-							int cost = AutoRepairPlugin.getiConCosts().get(toolString);
-							ArrayList<ItemStack> reqItems = AutoRepairPlugin.getRepairRecipies().get(toolString);
-							balance = AutoRepairPlugin.econ.getBalance(player.getName());
-							if (cost > balance || !isEnoughItems(reqItems)) {
-								player.sendMessage("§6WARNING: " + tool.getType() + " will break soon");
-								bothWarn(toolString, cost, reqItems);
-							} 
-						} else{
-							ArrayList<ItemStack> reqItems = AutoRepairPlugin.getRepairRecipies().get(toolString);
-							if (!isEnoughItems(reqItems)) {								
-								player.sendMessage("§6WARNING: " + tool.getType() + " will break soon");
-								System.out.println(toolString + " " + AutoRepairPlugin.getRepairRecipies().get(toolString));
-								justItemsWarn(toolString, reqItems);
-							}
-						}
-					}
-				} else {
-					// item does not have a repair reference in config
-					player.sendMessage("§6" +toolString + " not found in config file.");
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		*/
 	}
 
 	public boolean repArmourInfo(String query) {

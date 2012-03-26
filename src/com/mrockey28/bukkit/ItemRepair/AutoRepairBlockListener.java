@@ -15,7 +15,7 @@ import org.bukkit.inventory.PlayerInventory;
 
 /**
  * testing block listener
- * @author lostaris
+ * @author lostaris, mrockey28
  */
 public class AutoRepairBlockListener implements Listener {
 	private final AutoRepairPlugin plugin;
