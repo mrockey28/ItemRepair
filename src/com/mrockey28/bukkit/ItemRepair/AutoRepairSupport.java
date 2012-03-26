@@ -195,10 +195,9 @@ public class AutoRepairSupport {
 				switch (op)
 				{
 					case QUERY:
-						isEnoughItems(req, neededItems);
 						player.sendMessage("§6To repair " + tool.getType() + " you need: " 
 								+ AutoRepairPlugin.econ.format((double)cost) + " and");
-						player.sendMessage("§6" + printFormatReqs(neededItems));
+						player.sendMessage("§6" + printFormatReqs(req));
 						break;
 					case AUTO_REPAIR:
 					case MANUAL_REPAIR:
@@ -238,9 +237,8 @@ public class AutoRepairSupport {
 				switch (op)
 				{
 					case QUERY:
-						isEnoughItems(req, neededItems);
 						player.sendMessage("§6To repair " + tool.getType() + " you need:");
-						player.sendMessage("§6" + printFormatReqs(neededItems));
+						player.sendMessage("§6" + printFormatReqs(req));
 						break;
 					case AUTO_REPAIR:
 					case MANUAL_REPAIR:

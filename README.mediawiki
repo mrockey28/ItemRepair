@@ -1,59 +1,88 @@
 ==At a glace==
-*Repairs your tools and armour
-*Repairs either cost items or are free
+*Repairs your tools, weapons and armour
+*Repairs can either be free, cost items, cost via economy, or both.
 *Repairs can be triggered manually or automatically
 *Allows for indestructible tools
-*Bukkit Permissions support
-*iConomy, BOSEconomy, Essentials Economy, MultiCurrency support via Register
-*Manual repairs cost depending on how damaged the item is
-
+*Works on enchanted items too!
+*Permissions support through PermissionsBukkit (may work, but not tested with, other Permissions systems)
+*Economy support through Vault
+*Manual repairs can be set to have varying cost depending on how damaged the item is
 
 ==Features==
-Allows a player can repair their tools, either manually or automatically just before they break. Automatic repairing will trigger on hitting a block with a tool when the tool is about to break. This repairing can be done at the cost of of a given amount of one or more materials or for free.
+Allows a player can repair their tools, either manually or automatically just before they break. Automatic repairing 
+
+will trigger on hitting a block with a tool when the tool is about to break. This repairing can be done at the cost of a 
+
+given amount of one or more materials, a set amount of money if an economy system is in use, or for free.
 
 ===New===
-Now using Bukkit permissions
-Using register to support many Economy plugins
-In the config file the iConomy setting is now economy
+* Added Bows
+* Added ability to query for armor repair cost, if it's in a quickslot
+* Warnings now return only items missing from inventory that are needed to fulfill repair cost
+* Info queries and warnings now account for rounding
 
 ==Setup==
-AutoRepair.properties file sits in your plugin/AutoRepair folder, values are in the format of "[Item name to repair]=[item id of the item to repair with],[amount to use] icon=[iConomy cost]"
-eg: GOLD_HOE=13,12 econ=10 ie: gold hoes needs 12 gravel to repair and/or 10 money
-More than one item can be added in the format
+===AutoRepair.properties===
+The AutoRepair.properties file sits in your plugin/AutoRepair folder. This file dictates the items that can be repaired, 
 
+and the (changeable) values associated with repairing that item. The format is as follows (items in <> are optional):
 
-<nowiki>"[Item name to repair]=[item id],[amount to use]:[item id],[amount to use]"
-eg: GOLD_HOE=266,2:280,2 econ=10
-the [ icon=[economy cost]] can be left out if you don't intend to use an economy plugin</nowiki>
+<nowiki>[item to be repaired]:[said item's durability]:[hex val of item to repair with],[amount of that item to use]<:
 
-Config.properties also sits in the plugin/AutoRepair folder.
-auto-repair controls if the auto repairing is turned on (true) or off (false)
-repair-costs does the same for repairs costing materials.
-permissions controls if the plugin will use the permissions plugin
-economy controls if the plugin will use iConomy cash, iConomy cash and items, or just items
-rounding controls if repair costs will not vary depending on item damage or if item costs have a minimum cost of one
+[next item to repair with],[amount of next item to use] econ=[cost of repairing when using economy]></nowiki>
+
+A real use case is:
+
+<blockquote>GOLD_SPADE=33:13,1:280,2 econ=25</blockquote>
+<blockquote>SHEARS=287:65,2</blockquote>
+
+Translation: Gold Spades can be used 33 times before dying; it costs 25 [currency] and/or 1 gravel and 2 sticks to 
+
+repair. Shears can be used 287 times before dying; they cost 2 ladders to repair.
+
+'''A warning:''' If you have AutoRepair setup to use economy cost or both economy cost and item cost, you '''need''' to 
+
+have economy costs for every item in your AutoRepair.properties file, or things will not work correctly!
+
+===Config.properties===
+Config.properties is also located in the plugin/AutoRepair folder. It contains several settable parameters:
+*'''auto-repair''' controls if the auto repairing is turned on ''[true]'' or off ''[false]''
+*'''repair-costs''' controls whether repairs have a cost ''[true]'' or not ''[false]''
+*'''permissions''' controls if the plugin will use ''[true]'' or will not use ''[false]'' the permissions plugin
+*'''economy''' controls if the plugin will use iConomy cash ''[true]'', iConomy cash and items ''[both]'', or just items 
+
+''[false]''
+*'''rounding''' controls if item damage affects cost ''[round]'', damage affects cost but still a minimum cost of 1 of 
+
+each item ''[min]'', or damage doesn't affect cost ''[flat]''
 
 ==Economy==
-Usage of an economy plugin via register is optional. You can configure this plugin to use an economy plugin's cash to charge for a repair, use items and an economy plugin's cash, or turn this option off completely.
-If you wish to use an economy plugin you MUST also run Register.
+Usage of an economy plugin via Vault is optional. You can configure this plugin to use an economy plugin's cash to 
+
+charge for a repair. However, if you wish to use an economy plugin you MUST also run Vault.
 
 ==Permissions==
-Bukkit permissions is optional and if permissions is either not installed or is disabled for this plugin all features will be available for all users. Will be turned on if the line permissions=false in the config.properties file is changed to true.
-Note: any plugin that implements Bukkit permissions should work such as, PermissionBukkit, bPermissions or PermissionsEx
+Bukkit permissions is optional and if permissions is either not installed or is disabled for this plugin all features 
+
+will be available for all users. Will be turned on if the line permissions=false in the config.properties file is 
+
+changed to true.
 
 Available permission nodes are (case sensitive):
 *AutoRepair.access - allows the use of this plugin, without this a user cannot do anything
 *AutoRepair.info -- allows the use of the ? and dmg commands
 *AutoRepair.warn - allows warning when a tool is about to break
-*AutoRepair.repair.auto.* - allows automatic repairing, replace the * with .tools, .sword, .flint, shears or .rod for fine control
-*AutoRepair.repair.manual.* - allows for manual repairs, replace the * with .tools, .sword, .armour, .flint, shears or .rod for fine control
-*AutoRepair.repair.all - allows the repair all command
+*AutoRepair.repair -- allows items in a user's inventory to be repaired, whether automatic or manually
+*AutoRepair.auto -- enables AutoRepair of tools in a user's inventory
+*AutoRepair.reload -- allows a user to reload the plugin
 
 
 ==Commands Usage==
 *'/rep [quickbar slot 1-9]' repairs the tool/armour in this slot and deducts cost from inventory
 *'/rep [quickbar slot 1-9] ?' tells you what item and how much of it is needed to repair this item
-*'/rep [quickbar slot 1-9] dmg' tells you how many uses are left before this tool breaks or '/rep', '/rep ?', '/rep dmg' for the item in your hand
+*'/rep [quickbar slot 1-9] dmg' tells you how many uses are left before this tool breaks or '/rep', '/rep ?', '/rep dmg' 
+
+for the item in your hand
 *'/rep all' to repair ALL repairable items in your inventory including worn armour
 *'/rep arm' repairs all of your currently equipped armour
 *'/rep arm ?' tells you what you need to repair your equipped armour
