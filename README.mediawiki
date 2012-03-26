@@ -9,11 +9,7 @@
 *Manual repairs can be set to have varying cost depending on how damaged the item is
 
 ==Features==
-Allows a player can repair their tools, either manually or automatically just before they break. Automatic repairing 
-
-will trigger on hitting a block with a tool when the tool is about to break. This repairing can be done at the cost of a 
-
-given amount of one or more materials, a set amount of money if an economy system is in use, or for free.
+Allows a player can repair their tools, either manually or automatically just before they break. Automatic repairing will trigger on hitting a block with a tool when the tool is about to break. This repairing can be done at the cost of a given amount of one or more materials, a set amount of money if an economy system is in use, or for free.
 
 ===New===
 * Added Bows
@@ -23,26 +19,18 @@ given amount of one or more materials, a set amount of money if an economy syste
 
 ==Setup==
 ===AutoRepair.properties===
-The AutoRepair.properties file sits in your plugin/AutoRepair folder. This file dictates the items that can be repaired, 
+The AutoRepair.properties file sits in your plugin/AutoRepair folder. This file dictates the items that can be repaired, and the (changeable) values associated with repairing that item. The format is as follows (items in <> are optional):
 
-and the (changeable) values associated with repairing that item. The format is as follows (items in <> are optional):
-
-<nowiki>[item to be repaired]:[said item's durability]:[hex val of item to repair with],[amount of that item to use]<:
-
-[next item to repair with],[amount of next item to use] econ=[cost of repairing when using economy]></nowiki>
+<nowiki>[item to be repaired]:[said item's durability]:[hex val of item to repair with],[amount of that item to use]<:[next item to repair with],[amount of next item to use] econ=[cost of repairing when using economy]></nowiki>
 
 A real use case is:
 
 <blockquote>GOLD_SPADE=33:13,1:280,2 econ=25</blockquote>
 <blockquote>SHEARS=287:65,2</blockquote>
 
-Translation: Gold Spades can be used 33 times before dying; it costs 25 [currency] and/or 1 gravel and 2 sticks to 
+Translation: Gold Spades can be used 33 times before dying; it costs 25 [currency] and/or 1 gravel and 2 sticks to repair. Shears can be used 287 times before dying; they cost 2 ladders to repair.
 
-repair. Shears can be used 287 times before dying; they cost 2 ladders to repair.
-
-'''A warning:''' If you have AutoRepair setup to use economy cost or both economy cost and item cost, you '''need''' to 
-
-have economy costs for every item in your AutoRepair.properties file, or things will not work correctly!
+'''A warning:''' If you have AutoRepair setup to use economy cost or both economy cost and item cost, you '''need''' to have economy costs for every item in your AutoRepair.properties file, or things will not work correctly!
 
 ===Config.properties===
 Config.properties is also located in the plugin/AutoRepair folder. It contains several settable parameters:
@@ -52,21 +40,13 @@ Config.properties is also located in the plugin/AutoRepair folder. It contains s
 *'''economy''' controls if the plugin will use iConomy cash ''[true]'', iConomy cash and items ''[both]'', or just items 
 
 ''[false]''
-*'''rounding''' controls if item damage affects cost ''[round]'', damage affects cost but still a minimum cost of 1 of 
-
-each item ''[min]'', or damage doesn't affect cost ''[flat]''
+*'''rounding''' controls if item damage affects cost ''[round]'', damage affects cost but still a minimum cost of 1 of each item ''[min]'', or damage doesn't affect cost ''[flat]''
 
 ==Economy==
-Usage of an economy plugin via Vault is optional. You can configure this plugin to use an economy plugin's cash to 
-
-charge for a repair. However, if you wish to use an economy plugin you MUST also run Vault.
+Usage of an economy plugin via Vault is optional. You can configure this plugin to use an economy plugin's cash to charge for a repair. However, if you wish to use an economy plugin you MUST also run Vault.
 
 ==Permissions==
-Bukkit permissions is optional and if permissions is either not installed or is disabled for this plugin all features 
-
-will be available for all users. Will be turned on if the line permissions=false in the config.properties file is 
-
-changed to true.
+Bukkit permissions is optional and if permissions is either not installed or is disabled for this plugin all features will be available for all users. Will be turned on if the line permissions=false in the config.properties file is changed to true.
 
 Available permission nodes are (case sensitive):
 *AutoRepair.access - allows the use of this plugin, without this a user cannot do anything
@@ -80,9 +60,7 @@ Available permission nodes are (case sensitive):
 ==Commands Usage==
 *'/rep [quickbar slot 1-9]' repairs the tool/armour in this slot and deducts cost from inventory
 *'/rep [quickbar slot 1-9] ?' tells you what item and how much of it is needed to repair this item
-*'/rep [quickbar slot 1-9] dmg' tells you how many uses are left before this tool breaks or '/rep', '/rep ?', '/rep dmg' 
-
-for the item in your hand
+*'/rep [quickbar slot 1-9] dmg' tells you how many uses are left before this tool breaks or '/rep', '/rep ?', '/rep dmg' for the item in your hand
 *'/rep all' to repair ALL repairable items in your inventory including worn armour
 *'/rep arm' repairs all of your currently equipped armour
 *'/rep arm ?' tells you what you need to repair your equipped armour
