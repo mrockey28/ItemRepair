@@ -21,6 +21,7 @@ Allows a player can repair their tools, either manually or automatically just be
 ===AutoRepair.properties===
 The AutoRepair.properties file sits in your plugin/AutoRepair folder. This file dictates the items that can be repaired, and the (changeable) values associated with repairing that item. The format is as follows (items in <> are optional):
 
+
 <nowiki>[item to be repaired]:[said item's durability]:[hex val of item to repair with],[amount of that item to use]<:[next item to repair with],[amount of next item to use] econ=[cost of repairing when using economy]></nowiki>
 
 A real use case is:
@@ -37,9 +38,7 @@ Config.properties is also located in the plugin/AutoRepair folder. It contains s
 *'''auto-repair''' controls if the auto repairing is turned on ''[true]'' or off ''[false]''
 *'''repair-costs''' controls whether repairs have a cost ''[true]'' or not ''[false]''
 *'''permissions''' controls if the plugin will use ''[true]'' or will not use ''[false]'' the permissions plugin
-*'''economy''' controls if the plugin will use iConomy cash ''[true]'', iConomy cash and items ''[both]'', or just items 
-
-''[false]''
+*'''economy''' controls if the plugin will use iConomy cash ''[true]'', iConomy cash and items ''[both]'', or just items ''[false]''
 *'''rounding''' controls if item damage affects cost ''[round]'', damage affects cost but still a minimum cost of 1 of each item ''[min]'', or damage doesn't affect cost ''[flat]''
 
 ==Economy==
