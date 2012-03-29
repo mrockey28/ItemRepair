@@ -249,7 +249,6 @@ public class AutoRepairPlugin extends JavaPlugin {
 		boolean allowed = false;
 		if(isPermissions == true) {
 			if(player.hasPermission("AutoRepair.access") && player.hasPermission("AutoRepair."+com)) {
-				log.info("Player has " +com+ " permission");
 				allowed = true;
 			} else {
 				allowed = false;

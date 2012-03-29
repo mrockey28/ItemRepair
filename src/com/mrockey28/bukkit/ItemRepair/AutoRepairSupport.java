@@ -456,7 +456,7 @@ public class AutoRepairSupport {
 	}
 
 	public void iConWarn(String itemName, double total) {
-		getPlayer().sendMessage("§cYou are cannot afford to repair "  + itemName);
+		getPlayer().sendMessage("§cYou cannot afford to repair "  + itemName);
 		getPlayer().sendMessage("§cYou need: " + AutoRepairPlugin.econ.format((double)total));
 	}
 
