@@ -45,7 +45,8 @@ public class AutoRepairPlugin extends JavaPlugin {
 	public static boolean isPermissions = false;
 	
 	public static Economy econ = null;
-	public static String rounding;
+	public static String item_rounding = "flat";
+	public static String econ_fractioning = "off";
 	public static final Logger log = Logger.getLogger("Minecraft");
 	//public AutoRepairSupport support = new AutoRepairSupport(this);
 	public Repair repair = new Repair(this);
@@ -290,45 +291,65 @@ public class AutoRepairPlugin extends JavaPlugin {
 			readProperties();
 			setSettings(readConfig());
 			if (getSettings().containsKey("auto-repair")) {
-				if (getSettings().get("auto-repair").equals("true")) {
-					setAutoRepair(true);
-				} else if (getSettings().get("auto-repair").equals("false")) {
+				if (getSettings().get("auto-repair").equals("false")) {
 					setAutoRepair(false);
+				}
+				//If somebody fucks up, the default is true
+				else
+				{
+					setAutoRepair(true);
 				}
 			}
 			if (getSettings().containsKey("repair-costs")) {
-				if (getSettings().get("repair-costs").equals("true")) {
-					setRepairCosts(true);
-				} else if (getSettings().get("repair-costs").equals("false")) {
+				if (getSettings().get("repair-costs").equals("false")) {
 					setRepairCosts(false);
+				}
+				//If somebody fucks up, the default is true
+				else
+				{
+					setRepairCosts(true);
 				}
 			}
 			if (getSettings().containsKey("economy")) {
 				if (getSettings().get("economy").equals("true")) {
 					setIsICon("true");
-				} else if (getSettings().get("economy").equals("false")) {
-					setIsICon("false");
 				} else if (getSettings().get("economy").equals("both")) {
 					setIsICon("both");
 				}
+				//If somebody fucks up, the default is false
+				else{
+					setIsICon("false");
+				}
 			}
 			if (getSettings().containsKey("permissions")) {
-				if (getSettings().get("permissions").equals("false")) {
-					AutoRepairPlugin.isPermissions = false;
-				} if (getSettings().get("permissions").equals("true")) {
+				if (getSettings().get("permissions").equals("true")) {
 					AutoRepairPlugin.isPermissions = true;
 				}
-			}
-			if (getSettings().containsKey("rounding")) {
-				if (getSettings().get("rounding").equals("min")) {
-					rounding = "min";
-				} if (getSettings().get("rounding").equals("flat")) {
-					rounding = "flat";
-				} if (getSettings().get("rounding").equals("round")) {
-					rounding = "round";
+				//If somebody fucks up, the default is false
+				else
+				{
+					AutoRepairPlugin.isPermissions = false;
 				}
-				
-				
+			}
+			if (getSettings().containsKey("item_rounding")) {
+				if (getSettings().get("item_rounding").equals("min")) {
+					item_rounding = "min";
+				} if (getSettings().get("item_rounding").equals("round")) {
+					item_rounding = "round";
+				}
+				//If somebody fucks up, the default is "flat"
+				else {
+					item_rounding = "flat";
+				} 
+			}
+			if (getSettings().containsKey("econ_fractioning")) {
+				if (getSettings().get("econ_fractioning").equals("on")) {
+					econ_fractioning = "on";
+				} 
+				//If somebody fucks up, the default is "off"
+				else {
+					econ_fractioning = "off";
+				}	
 			}
 		} catch (Exception e){
 			log.info("Error reading AutoRepair config files");

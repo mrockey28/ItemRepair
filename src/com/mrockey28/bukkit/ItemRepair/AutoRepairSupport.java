@@ -116,7 +116,7 @@ public class AutoRepairSupport {
 		}
 
 		//do rounding based on dmg already done to item, if called for by config
-		if (op != operationType.AUTO_REPAIR && AutoRepairPlugin.rounding != "flat")
+		if (op != operationType.AUTO_REPAIR && (AutoRepairPlugin.item_rounding != "flat" || AutoRepairPlugin.econ_fractioning != "off"))
 		{
 			
 			float percentUsed = CalcPercentUsed(inven.getItem(slot), durability);
@@ -124,18 +124,25 @@ public class AutoRepairSupport {
 				float amnt = req.get(index).getAmount();
 				int amntInt;
 				
-				amnt = amnt * percentUsed;
-				cost = cost * percentUsed;
-				amnt = Math.round(amnt);
-				amntInt = (int)amnt;
-				if (AutoRepairPlugin.rounding == "min")
+				//If they turned on econ fractioning, round the cost to the correct amount
+				if (AutoRepairPlugin.econ_fractioning == "on")
 				{
-					if (amntInt == 0)
-					{
-						amntInt = 1;
-					}
+					cost = cost * percentUsed;
 				}
-				req.get(index).setAmount(amntInt);
+				if (AutoRepairPlugin.item_rounding == "min" || AutoRepairPlugin.item_rounding == "round")
+				{
+					amnt = amnt * percentUsed;
+					amnt = Math.round(amnt);
+					amntInt = (int)amnt;
+					if (AutoRepairPlugin.item_rounding == "min")
+					{
+						if (amntInt == 0)
+						{
+							amntInt = 1;
+						}
+					}
+					req.get(index).setAmount(amntInt);
+				}
 					
 			}
 		}
@@ -249,7 +256,7 @@ public class AutoRepairSupport {
 						} else {
 							if (op == operationType.MANUAL_REPAIR || !getLastWarning()) {
 								if (AutoRepairPlugin.isAllowed(player, "warn")) {
-									justItemsWarn(itemName, req);					
+									justItemsWarn(itemName, neededItems);					
 								}
 								if (op == operationType.AUTO_REPAIR) setLastWarning(true);							
 							}
@@ -450,18 +457,18 @@ public class AutoRepairSupport {
 
 	public void iConWarn(String itemName, double total) {
 		getPlayer().sendMessage("§cYou are cannot afford to repair "  + itemName);
-		getPlayer().sendMessage("§cNeed: " + AutoRepairPlugin.econ.format((double)total));
+		getPlayer().sendMessage("§cYou need: " + AutoRepairPlugin.econ.format((double)total));
 	}
 
 	public void bothWarn(String itemName, double total, ArrayList<ItemStack> req) {
-		getPlayer().sendMessage("§cYou are missing one or more items to repair " + itemName);
-		getPlayer().sendMessage("§cNeed: " + printFormatReqs(req) + " and " +
+		getPlayer().sendMessage("§cYou still need the following to be able to repair ");
+		getPlayer().sendMessage("§cyour " + itemName + ": " + printFormatReqs(req) + " and " +
 				AutoRepairPlugin.econ.format((double)total));
 	}
 	
 	public void justItemsWarn(String itemName, ArrayList<ItemStack> req) {
-		player.sendMessage("§cYou are missing one or more items to repair " + itemName);
-		player.sendMessage("§cNeed: " + printFormatReqs(req));
+		player.sendMessage("§cYou still need the following to be able to repair ");
+		player.sendMessage("§cyour " + itemName + ": " + printFormatReqs(req));
 	}
 
 	public String printFormatReqs(ArrayList<ItemStack> items) {
