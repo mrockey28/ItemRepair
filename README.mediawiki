@@ -1,3 +1,5 @@
+==Credits==
+A lot of credit goes to lostaris; I heavily adapted his original plugin to make this compatible with Vault, support the latest versions, etc.
 ==At a glace==
 *Repairs your tools, weapons and armour
 *Repairs can either be free, cost items, cost via economy, or both.
