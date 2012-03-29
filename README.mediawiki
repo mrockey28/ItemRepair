@@ -39,7 +39,8 @@ Config.properties is also located in the plugin/AutoRepair folder. It contains s
 *'''repair-costs''' controls whether repairs have a cost ''[true]'' or not ''[false]''
 *'''permissions''' controls if the plugin will use ''[true]'' or will not use ''[false]'' the permissions plugin
 *'''economy''' controls if the plugin will use iConomy cash ''[true]'', iConomy cash and items ''[both]'', or just items ''[false]''
-*'''rounding''' controls if item damage affects cost ''[round]'', damage affects cost but still a minimum cost of 1 of each item ''[min]'', or damage doesn't affect cost ''[flat]''
+*'''item_rounding''' controls if item damage affects item cost ''[round]'', damage affects cost but still a minimum cost of 1 of each item ''[min]'', or damage doesn't affect cost ''[flat]''
+*'''econ_fractioning''' does the same thing as item rounding, but for economy costs, if they're used, and can only be ''[on]'' or ''[off]''
 
 ==Economy==
 Usage of an economy plugin via Vault is optional. You can configure this plugin to use an economy plugin's cash to charge for a repair. However, if you wish to use an economy plugin you MUST also run Vault.
