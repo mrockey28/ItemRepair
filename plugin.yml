@@ -1,9 +1,8 @@
 name: AutoRepair
 main: com.mrockey28.bukkit.ItemRepair.AutoRepairPlugin
-version: 1.8
+version: 1.81
 authors: [mrockey28, lostaris]
-depend: [Vault]
-softdepend: [PermissionsBukkit]
+softdepend: [Vault, PermissionsBukkit]
 commands:
   repair:
     description: uses one or more items to repair a tool or armour
