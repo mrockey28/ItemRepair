@@ -51,7 +51,6 @@ public class AutoRepairSupport {
 	public void toolReq(ItemStack tool, int slot) {	
 		doRepairOperation(tool, slot, operationType.QUERY);
 	}
-
 	
 	public void deduct(ArrayList<ItemStack> req) {
 		PlayerInventory inven = player.getInventory();
@@ -80,6 +79,8 @@ public class AutoRepairSupport {
 	
 	public void doRepairOperation(ItemStack tool, int slot, AutoRepairPlugin.operationType op)
 	{
+		ArrayList<ItemStack> req;
+		
 		double balance = AutoRepairPlugin.econ.getBalance(player.getName());
 		if (!AutoRepairPlugin.isOpAllowed(getPlayer(), op)) {
 			return;
@@ -90,19 +91,28 @@ public class AutoRepairSupport {
 		if (op == operationType.WARN && !warning) warning = true;					
 		else if (op == operationType.WARN) return;
 
-
 		PlayerInventory inven = getPlayer().getInventory();
 		HashMap<String, ArrayList<ItemStack> > recipies = AutoRepairPlugin.getRepairRecipies();
 		String itemName = Material.getMaterial(tool.getTypeId()).toString();
+
 		HashMap<String, Integer> durabilities = AutoRepairPlugin.getDurabilityCosts();
-		ArrayList<ItemStack> req = new ArrayList<ItemStack>(recipies.get(itemName).size());	
+		
+		if (recipies.containsKey(itemName)) {
+			req = new ArrayList<ItemStack>(recipies.get(itemName).size());	
+		}
+		else
+		{
+			player.sendMessage("§cThis item (" + itemName + ") is not in the AutoRepair database.");
+			return;
+		}
+		
 		ArrayList<ItemStack> neededItems = new ArrayList<ItemStack>(0);
 		
 		//do a deep copy of the required items list so we can modify it temporarily for rounding purposes
 		for (ItemStack i: recipies.get(itemName)) {
 		  req.add((ItemStack)i.clone());
 		}
-			
+
 		String toolString = tool.getType().toString();
 		int durability = durabilities.get(itemName);
 		double cost = 0;
@@ -124,11 +134,6 @@ public class AutoRepairSupport {
 				float amnt = req.get(index).getAmount();
 				int amntInt;
 				
-				//If they turned on econ fractioning, round the cost to the correct amount
-				if (AutoRepairPlugin.econ_fractioning == "on")
-				{
-					cost = cost * percentUsed;
-				}
 				if (AutoRepairPlugin.item_rounding == "min" || AutoRepairPlugin.item_rounding == "round")
 				{
 					amnt = amnt * percentUsed;
@@ -144,6 +149,12 @@ public class AutoRepairSupport {
 					req.get(index).setAmount(amntInt);
 				}
 					
+			}
+			
+			//If they turned on econ fractioning, round the cost to the correct amount
+			if (AutoRepairPlugin.econ_fractioning == "on")
+			{
+				cost = cost * percentUsed;
 			}
 		}
 		try {
