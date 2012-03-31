@@ -6,11 +6,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-
-
-import net.milkbowl.vault.Vault;
-import net.milkbowl.vault.economy.Economy;
-import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -35,7 +30,7 @@ public class AutoRepairSupport {
 	private boolean warning = false;
 	private boolean lastWarning = false;
 
-	private float CalcPercentUsed(ItemStack tool, int durability)
+	public float CalcPercentUsed(ItemStack tool, int durability)
 	{
 			float percentUsed = -1;
 			percentUsed = (float)tool.getDurability() / (float)durability;
@@ -48,8 +43,8 @@ public class AutoRepairSupport {
 		return true;
 	}
 	
-	public void toolReq(ItemStack tool, int slot) {	
-		doRepairOperation(tool, slot, operationType.QUERY);
+	public void toolReq(ItemStack tool) {	
+		doRepairOperation(tool, operationType.QUERY);
 	}
 	
 	public void deduct(ArrayList<ItemStack> req) {
@@ -77,7 +72,7 @@ public class AutoRepairSupport {
 		}
 	}
 	
-	public void doRepairOperation(ItemStack tool, int slot, AutoRepairPlugin.operationType op)
+	public void doRepairOperation(ItemStack tool, AutoRepairPlugin.operationType op)
 	{
 		ArrayList<ItemStack> req;
 		
@@ -91,7 +86,6 @@ public class AutoRepairSupport {
 		if (op == operationType.WARN && !warning) warning = true;					
 		else if (op == operationType.WARN) return;
 
-		PlayerInventory inven = getPlayer().getInventory();
 		HashMap<String, ArrayList<ItemStack> > recipies = AutoRepairPlugin.getRepairRecipies();
 		String itemName = Material.getMaterial(tool.getTypeId()).toString();
 
@@ -129,7 +123,7 @@ public class AutoRepairSupport {
 		if (op != operationType.AUTO_REPAIR && (AutoRepairPlugin.item_rounding != "flat" || AutoRepairPlugin.econ_fractioning != "off"))
 		{
 			
-			float percentUsed = CalcPercentUsed(inven.getItem(slot), durability);
+			float percentUsed = CalcPercentUsed(tool, durability);
 			for (int index = 0; index < req.size(); index++) {
 				float amnt = req.get(index).getAmount();
 				int amntInt;
@@ -167,7 +161,7 @@ public class AutoRepairSupport {
 					case AUTO_REPAIR:
 					case MANUAL_REPAIR:
 						getPlayer().sendMessage("§3Repaired " + itemName);
-						inven.setItem(slot, repItem(tool));
+						repItem(tool);
 						break;
 					case QUERY:
 						getPlayer().sendMessage("§3No materials needed to repair.");
@@ -192,7 +186,7 @@ public class AutoRepairSupport {
 							AutoRepairPlugin.econ.withdrawPlayer(player.getName(), cost);
 							player.sendMessage("§3Using " + AutoRepairPlugin.econ.format((double)cost) + " to repair " + itemName);
 							//inven.setItem(slot, repItem(tool));
-							inven.setItem(slot, repItem(tool));
+							repItem(tool);
 						} else {
 							iConWarn(itemName, cost);
 						}
@@ -225,7 +219,7 @@ public class AutoRepairSupport {
 							deduct(req);
 							player.sendMessage("§3Using " + AutoRepairPlugin.econ.format((double)cost) + " and");
 							player.sendMessage("§3" + printFormatReqs(req) + " to repair "  + itemName);
-							inven.setItem(slot, repItem(tool));
+							repItem(tool);
 						} else {
 							if (op == operationType.MANUAL_REPAIR || !getLastWarning()) {
 								if (AutoRepairPlugin.isAllowed(player, "warn")) {
@@ -263,7 +257,8 @@ public class AutoRepairSupport {
 						if (isEnoughItems(req, neededItems)) {
 							deduct(req);
 							player.sendMessage("§3Using " + printFormatReqs(req) + " to repair " + itemName);
-							inven.setItem(slot, repItem(tool));
+							//inven.setItem(slot, repItem(tool));
+							repItem(tool);
 						} else {
 							if (op == operationType.MANUAL_REPAIR || !getLastWarning()) {
 								if (AutoRepairPlugin.isAllowed(player, "warn")) {
@@ -289,8 +284,8 @@ public class AutoRepairSupport {
 		}
 	}
 	
-	public void repairWarn(ItemStack tool, int slot) {
-		doRepairOperation(tool, slot, operationType.WARN);
+	public void repairWarn(ItemStack tool) {
+		doRepairOperation(tool, operationType.WARN);
 	}
 
 	public boolean repArmourInfo(String query) {

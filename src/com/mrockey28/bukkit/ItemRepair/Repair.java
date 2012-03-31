@@ -2,10 +2,7 @@ package com.mrockey28.bukkit.ItemRepair;
 
 
 import java.util.ArrayList;
-import java.math.RoundingMode;
-import java.util.HashMap;
 import java.util.logging.Logger;
-import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
@@ -20,15 +17,15 @@ public class Repair extends AutoRepairSupport{
 		super(instance, getPlayer());
 	}
 	
-	public boolean manualRepair(ItemStack tool, int slot) {
+	public boolean manualRepair(ItemStack tool) {
 		
-		doRepairOperation(tool, slot, operationType.MANUAL_REPAIR);
+		doRepairOperation(tool, operationType.MANUAL_REPAIR);
 		return false;		
 	}
 
-	public boolean autoRepairTool(ItemStack tool, int slot) {
+	public boolean autoRepairTool(ItemStack tool) {
 		
-		doRepairOperation(tool, slot, operationType.AUTO_REPAIR);
+		doRepairOperation(tool, operationType.AUTO_REPAIR);
 		return false;
 	}
 

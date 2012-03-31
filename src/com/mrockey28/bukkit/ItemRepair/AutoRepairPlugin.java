@@ -1,29 +1,17 @@
 package com.mrockey28.bukkit.ItemRepair;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.bukkit.Server;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.PluginDescriptionFile;
-import org.bukkit.plugin.PluginLoader;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.Plugin;
-import net.milkbowl.vault.Vault;
 import net.milkbowl.vault.economy.Economy;
-import net.milkbowl.vault.economy.EconomyResponse;
-
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 
 
 
@@ -139,7 +127,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 			if (split.length == 0) {
 				if (isAllowed(player, "repair")) {
 					tool = player.getItemInHand();
-					repair.manualRepair(tool, inven.getHeldItemSlot() );
+					repair.manualRepair(tool);
 				} else {
 					player.sendMessage("§cYou dont have permission to do the repair command.");
 				}
@@ -147,7 +135,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 				try {
 					char repairList = split[0].charAt(0);					
 					if (repairList == '?') {
-						support.toolReq(player.getItemInHand(), player.getInventory().getHeldItemSlot());
+						support.toolReq(player.getItemInHand());
 					} else if (split[0].equalsIgnoreCase("dmg")) {						
 						support.durabilityLeft(inven.getItem(inven.getHeldItemSlot()));
 					} else if (split[0].equalsIgnoreCase("arm")) {						
@@ -164,7 +152,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 							itemSlot = Integer.parseInt(split[0]);
 							if (itemSlot >0 && itemSlot <=9) {
 								tool = inven.getItem(itemSlot -1);
-								repair.manualRepair(tool, itemSlot -1);
+								repair.manualRepair(tool);
 							} else {
 								player.sendMessage("§6ERROR: Slot must be a quick bar slot between 1 and 9");
 							}	
@@ -187,7 +175,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 					itemSlot = Integer.parseInt(split[0]);
 					if (getRecipe == '?' && itemSlot >0 && itemSlot <=9) {
 						if (isAllowed(player, "info")) {
-							support.toolReq(inven.getItem(itemSlot-1), itemSlot-1 );
+							support.toolReq(inven.getItem(itemSlot-1));
 						} else {
 							player.sendMessage("§cYou dont have permission to do the ? or dmg commands.");
 						}
