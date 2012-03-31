@@ -92,11 +92,7 @@ public class AutoRepairSupport {
 		if (recipies.containsKey(itemName)) {
 			req = new ArrayList<ItemStack>(recipies.get(itemName).size());	
 		}
-		else
-		{
-			player.sendMessage("§cThis item (" + itemName + ") is not in the AutoRepair database.");
-			return;
-		}
+		else return;
 		
 		ArrayList<ItemStack> neededItems = new ArrayList<ItemStack>(0);
 		//do a deep copy of the required items list so we can modify it temporarily for rounding purposes
@@ -114,11 +110,7 @@ public class AutoRepairSupport {
 			if (AutoRepairPlugin.getiConCosts().containsKey(toolString)) {
 				cost = (double)AutoRepairPlugin.getiConCosts().get(itemName);
 			}
-			else
-			{
-				player.sendMessage("§cThis item is not in the AutoRepair database.");
-				return;
-			}
+			else return;
 		}
 
 		//do rounding based on dmg already done to item, if called for by config

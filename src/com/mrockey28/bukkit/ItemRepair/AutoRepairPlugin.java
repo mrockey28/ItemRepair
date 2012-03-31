@@ -151,7 +151,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 					} else if (split[0].equalsIgnoreCase("dmg")) {						
 						support.durabilityLeft(inven.getItem(inven.getHeldItemSlot()));
 					} else if (split[0].equalsIgnoreCase("arm")) {						
-						repair.repairArmour();
+						repair.repairArmor(player);
 					} else if (split[0].equalsIgnoreCase("all")) {						
 						repair.repairAll(player);
 					} else if(split[0].equalsIgnoreCase("reload")) {
@@ -236,15 +236,15 @@ public class AutoRepairPlugin extends JavaPlugin {
 			case FULL_REPAIR:
 				if (!isAllowed(player, "repair"))
 				{
-					player.sendMessage("§cYou dont have permission to do the repair command.");
+					if (op != operationType.FULL_REPAIR) player.sendMessage("§cYou dont have permission to do the repair command.");
 					return false;
 				} 
 				if (enchanted) {
 					if (allowEnchanted == "false"){
-						player.sendMessage("§cEnchanted items can't be repaired.");
+						if (op != operationType.FULL_REPAIR) player.sendMessage("§cEnchanted items can't be repaired.");
 						return false;
 					} else if (allowEnchanted == "permissions" && !isAllowed(player, "repair.enchanted")){
-						player.sendMessage("§cYou dont have permission to repair enchanted items.");
+						if (op != operationType.FULL_REPAIR) player.sendMessage("§cYou dont have permission to repair enchanted items.");
 						return false;
 					}
 				}

@@ -122,7 +122,6 @@ public class AutoRepairBlockListener implements Listener {
 		}
 		else
 		{
-			AutoRepairPlugin.log.info("[AutoRepair][ERROR] Item " + itemName + " is not in the AutoRepair.properties file!");
 			return;
 		}
 		
@@ -167,7 +166,6 @@ public class AutoRepairBlockListener implements Listener {
 			}
 			else
 			{
-				AutoRepairPlugin.log.info("[AutoRepair][ERROR] Item " + itemName + " is not in the AutoRepair.properties file!");
 				return;
 			}
 			
