@@ -122,7 +122,13 @@ public class AutoRepairPlugin extends JavaPlugin {
 			if (!isAllowed(player, "access")) {
 				return true;
 			}
+			String argsOneString = "";
+			for (String i : args)
+			{
+				argsOneString += (" " + i);
+			}
 
+			log.info("[PLAYER_COMMAND] " + player.getName().toString() + " /" + commandLabel.toString() + argsOneString);
 			ItemStack tool;
 			int itemSlot = 0;
 			if (split.length == 0) {
