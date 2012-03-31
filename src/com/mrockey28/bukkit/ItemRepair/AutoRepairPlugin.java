@@ -26,8 +26,8 @@ public class AutoRepairPlugin extends JavaPlugin {
 	private static HashMap<String, ArrayList<ItemStack>> repairRecipies;
 	private static HashMap<String, Integer> iConCosts;
 	private HashMap<String, String> settings;
-	private static boolean useiConomy;
-	private static String isiCon; //are we using icon, both or not at all
+	private static String useEcon = "false"; //are we using icon, both or not at all
+	private static boolean economyFound = false;
 	private static boolean autoRepair;
 	private static boolean repairCosts;
 	public static boolean isPermissions = false;
@@ -49,17 +49,9 @@ public class AutoRepairPlugin extends JavaPlugin {
 		FULL_REPAIR
 	}
 	
-	//public AutoRepairPlugin(PluginLoader pluginLoader, Server instance, PluginDescriptionFile desc, File folder, File plugin, ClassLoader cLoader) {
-	//	      super(pluginLoader, instance, desc, folder, plugin, cLoader);
-		// TODO: Place any custom initialisation code here
-
-		// NOTE: Event registration should be done in onEnable not here as all events are
-		// unregistered when a plugin is disabled
-	//}
 
 	public void onEnable() {
 		//  Place any custom enable code here including the registration of any events
-
 		// Register our events
 		getServer().getPluginManager().registerEvents(blockListener, this);
 
@@ -69,14 +61,12 @@ public class AutoRepairPlugin extends JavaPlugin {
 		refreshConfig();
 		
 		if (!setupEconomy() ) {
-	         log.info(String.format("[%s] - Economy not linked, Vault not found", getDescription().getName()));
-	         AutoRepairPlugin.useiConomy = false;
+	         log.info(String.format("[%s] - Economy not linked, Vault or Economy plugin not found", getDescription().getName()));
 		 }
 		else
 		{
-			AutoRepairPlugin.useiConomy = true;
+			economyFound = true;
 		}
-		
 	}
 	 
 
@@ -308,14 +298,16 @@ public class AutoRepairPlugin extends JavaPlugin {
 				}
 			}
 			if (getSettings().containsKey("economy")) {
-				if (getSettings().get("economy").equals("true")) {
-					setIsICon("true");
+				if (economyFound == false) {
+					setUseEcon("false");
+				} else if (getSettings().get("economy").equals("true")) {
+					setUseEcon("true");
 				} else if (getSettings().get("economy").equals("both")) {
-					setIsICon("both");
+					setUseEcon("both");
 				}
 				//If somebody fucks up, the default is false
 				else{
-					setIsICon("false");
+					setUseEcon("false");
 				}
 			}
 			if (getSettings().containsKey("permissions")) {
@@ -404,16 +396,12 @@ public class AutoRepairPlugin extends JavaPlugin {
 		setDurabilityCosts(durab);
 	}
 
-	public void setIsICon(String b) {
-		AutoRepairPlugin.isiCon = b;		
+	public void setUseEcon(String b) {
+		AutoRepairPlugin.useEcon = b;		
 	}
 
-	public static String getiSICon() {
-		return AutoRepairPlugin.isiCon;
-	}
-
-	public static boolean getUseIcon() {
-		return AutoRepairPlugin.useiConomy;
+	public static String getUseEcon() {
+		return AutoRepairPlugin.useEcon;
 	}
 
 	public static void setRepairRecipies(HashMap<String, ArrayList<ItemStack>> hashMap) {

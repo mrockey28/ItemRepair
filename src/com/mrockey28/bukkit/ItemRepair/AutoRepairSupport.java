@@ -76,7 +76,6 @@ public class AutoRepairSupport {
 	{
 		ArrayList<ItemStack> req;
 		
-		double balance = AutoRepairPlugin.econ.getBalance(player.getName());
 		if (!AutoRepairPlugin.isOpAllowed(getPlayer(), op)) {
 			return;
 		}
@@ -107,14 +106,19 @@ public class AutoRepairSupport {
 
 		String toolString = tool.getType().toString();
 		int durability = durabilities.get(itemName);
+		
+		double balance = 0;
 		double cost = 0;
-		if (AutoRepairPlugin.getiConCosts().containsKey(toolString)) {
-			cost = (double)AutoRepairPlugin.getiConCosts().get(itemName);
-		}
-		else
-		{
-			player.sendMessage("§cThis item is not in the AutoRepair database.");
-			return;
+		if (AutoRepairPlugin.getUseEcon() != "false") {
+			balance = AutoRepairPlugin.econ.getBalance(player.getName());
+			if (AutoRepairPlugin.getiConCosts().containsKey(toolString)) {
+				cost = (double)AutoRepairPlugin.getiConCosts().get(itemName);
+			}
+			else
+			{
+				player.sendMessage("§cThis item is not in the AutoRepair database.");
+				return;
+			}
 		}
 
 		//do rounding based on dmg already done to item, if called for by config
@@ -142,9 +146,8 @@ public class AutoRepairSupport {
 				}
 					
 			}
-			
-			//If they turned on econ fractioning, round the cost to the correct amount
-			if (AutoRepairPlugin.econ_fractioning == "on")
+			//If they turned on economy and econ fractioning, round the cost to the correct amount
+			if (AutoRepairPlugin.getUseEcon() != "false" && AutoRepairPlugin.econ_fractioning == "on")
 			{
 				cost = cost * percentUsed;
 			}
@@ -171,7 +174,7 @@ public class AutoRepairSupport {
 			}
 			
 			//Using economy to pay only
-			else if (AutoRepairPlugin.getiSICon().compareToIgnoreCase("true") == 0)
+			else if (AutoRepairPlugin.getUseEcon().compareToIgnoreCase("true") == 0)
 			{
 				switch (op)
 				{	case QUERY:
@@ -204,7 +207,7 @@ public class AutoRepairSupport {
 			} 
 			
 			//Using both economy and item costs to pay
-			else if (AutoRepairPlugin.getiSICon().compareToIgnoreCase("both") == 0) 
+			else if (AutoRepairPlugin.getUseEcon().compareToIgnoreCase("both") == 0) 
 			{	
 				switch (op)
 				{
@@ -309,7 +312,7 @@ public class AutoRepairSupport {
 					ArrayList<ItemStack> req = repArmourAmount();
 					PlayerInventory inven = player.getInventory();
 					
-					if (AutoRepairPlugin.getiSICon().compareToIgnoreCase("true") == 0){
+					if (AutoRepairPlugin.getUseEcon().compareToIgnoreCase("true") == 0){
 
 						for (ItemStack i : inven.getArmorContents()) {				
 							if (AutoRepairPlugin.getiConCosts().containsKey(i.getType().toString())) {
@@ -319,7 +322,7 @@ public class AutoRepairSupport {
 						player.sendMessage("§6To repair all your armour you need: "
 								+ AutoRepairPlugin.econ.format((double)total));					
 						// icon and item cost
-					} else if (AutoRepairPlugin.getiSICon().compareToIgnoreCase("both") == 0) {
+					} else if (AutoRepairPlugin.getUseEcon().compareToIgnoreCase("both") == 0) {
 						for (ItemStack i : inven.getArmorContents()) {				
 							if (AutoRepairPlugin.getiConCosts().containsKey(i.getType().toString())) {
 								total += AutoRepairPlugin.getiConCosts().get(i.getType().toString());

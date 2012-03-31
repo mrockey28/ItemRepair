@@ -82,7 +82,7 @@ public class Repair extends AutoRepairSupport{
 			player.sendMessage("§3Repaired your armour");
 			repArm();	
 			// just icon cost
-		} else if (AutoRepairPlugin.getiSICon().compareToIgnoreCase("true") == 0){
+		} else if (AutoRepairPlugin.getUseEcon().compareToIgnoreCase("true") == 0){
 			balance = AutoRepairPlugin.econ.getBalance(player.getName());
 
 			for (ItemStack i : inven.getArmorContents()) {				
@@ -99,7 +99,7 @@ public class Repair extends AutoRepairSupport{
 				player.sendMessage("§cNeed: " + AutoRepairPlugin.econ.format((double)total));
 			}
 			//both icon and item cost
-		} else if (AutoRepairPlugin.getiSICon().compareToIgnoreCase("both") == 0) {
+		} else if (AutoRepairPlugin.getUseEcon().compareToIgnoreCase("both") == 0) {
 			balance = AutoRepairPlugin.econ.getBalance(player.getName());
 			for (ItemStack i : inven.getArmorContents()) {				
 				if (AutoRepairPlugin.getiConCosts().containsKey(i.getType().toString())) {
