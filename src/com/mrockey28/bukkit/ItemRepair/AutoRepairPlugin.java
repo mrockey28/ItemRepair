@@ -45,7 +45,8 @@ public class AutoRepairPlugin extends JavaPlugin {
 		QUERY,
 		WARN,
 		MANUAL_REPAIR,
-		AUTO_REPAIR
+		AUTO_REPAIR,
+		FULL_REPAIR
 	}
 	
 	//public AutoRepairPlugin(PluginLoader pluginLoader, Server instance, PluginDescriptionFile desc, File folder, File plugin, ClassLoader cLoader) {
@@ -140,6 +141,8 @@ public class AutoRepairPlugin extends JavaPlugin {
 						support.durabilityLeft(inven.getItem(inven.getHeldItemSlot()));
 					} else if (split[0].equalsIgnoreCase("arm")) {						
 						repair.repairArmour();
+					} else if (split[0].equalsIgnoreCase("all")) {						
+						repair.repairAll(player);
 					} else if(split[0].equalsIgnoreCase("reload")) {
 						if (isAllowed(player, "reload")){ 
 							refreshConfig();
@@ -219,6 +222,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 				if (!isAllowed(player, "warn")) return false;
 				else return true;
 			case MANUAL_REPAIR:
+			case FULL_REPAIR:
 				if (!isAllowed(player, "repair"))
 				{
 					

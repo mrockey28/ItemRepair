@@ -88,7 +88,6 @@ public class AutoRepairSupport {
 
 		HashMap<String, ArrayList<ItemStack> > recipies = AutoRepairPlugin.getRepairRecipies();
 		String itemName = Material.getMaterial(tool.getTypeId()).toString();
-
 		HashMap<String, Integer> durabilities = AutoRepairPlugin.getDurabilityCosts();
 		
 		if (recipies.containsKey(itemName)) {
@@ -101,7 +100,6 @@ public class AutoRepairSupport {
 		}
 		
 		ArrayList<ItemStack> neededItems = new ArrayList<ItemStack>(0);
-		
 		//do a deep copy of the required items list so we can modify it temporarily for rounding purposes
 		for (ItemStack i: recipies.get(itemName)) {
 		  req.add((ItemStack)i.clone());
@@ -161,6 +159,7 @@ public class AutoRepairSupport {
 					case AUTO_REPAIR:
 					case MANUAL_REPAIR:
 						getPlayer().sendMessage("§3Repaired " + itemName);
+					case FULL_REPAIR:
 						repItem(tool);
 						break;
 					case QUERY:
@@ -181,13 +180,16 @@ public class AutoRepairSupport {
 						break;
 					case AUTO_REPAIR:
 					case MANUAL_REPAIR:
+					case FULL_REPAIR:
 						if (cost <= balance) {
 							//balance = iConomy.db.get_balance(player.getName());
 							AutoRepairPlugin.econ.withdrawPlayer(player.getName(), cost);
-							player.sendMessage("§3Using " + AutoRepairPlugin.econ.format((double)cost) + " to repair " + itemName);
+							if (op != operationType.FULL_REPAIR) {
+								player.sendMessage("§3Using " + AutoRepairPlugin.econ.format((double)cost) + " to repair " + itemName);
+							}
 							//inven.setItem(slot, repItem(tool));
 							repItem(tool);
-						} else {
+						} else if (op != operationType.FULL_REPAIR){
 							iConWarn(itemName, cost);
 						}
 						break;
@@ -213,14 +215,18 @@ public class AutoRepairSupport {
 						break;
 					case AUTO_REPAIR:
 					case MANUAL_REPAIR:
+					case FULL_REPAIR:
 						if (cost <= balance && isEnoughItems(req, neededItems)) {
 							//balance = iConomy.db.get_balance(player.getName());
 							AutoRepairPlugin.econ.withdrawPlayer(player.getName(), cost);
 							deduct(req);
-							player.sendMessage("§3Using " + AutoRepairPlugin.econ.format((double)cost) + " and");
-							player.sendMessage("§3" + printFormatReqs(req) + " to repair "  + itemName);
 							repItem(tool);
-						} else {
+							if (op != operationType.FULL_REPAIR) {
+								player.sendMessage("§3Using " + AutoRepairPlugin.econ.format((double)cost) + " and");
+								player.sendMessage("§3" + printFormatReqs(req) + " to repair "  + itemName);
+							}
+							
+						} else if (op != operationType.FULL_REPAIR){
 							if (op == operationType.MANUAL_REPAIR || !getLastWarning()) {
 								if (AutoRepairPlugin.isAllowed(player, "warn")) {
 									if (cost > balance && !isEnoughItems(req, neededItems)) bothWarn(itemName, cost, neededItems);
@@ -254,12 +260,15 @@ public class AutoRepairSupport {
 						break;
 					case AUTO_REPAIR:
 					case MANUAL_REPAIR:
+					case FULL_REPAIR:
 						if (isEnoughItems(req, neededItems)) {
 							deduct(req);
-							player.sendMessage("§3Using " + printFormatReqs(req) + " to repair " + itemName);
-							//inven.setItem(slot, repItem(tool));
 							repItem(tool);
-						} else {
+							if (op != operationType.FULL_REPAIR) {
+								player.sendMessage("§3Using " + printFormatReqs(req) + " to repair " + itemName);
+							}
+							
+						} else if (op != operationType.FULL_REPAIR){
 							if (op == operationType.MANUAL_REPAIR || !getLastWarning()) {
 								if (AutoRepairPlugin.isAllowed(player, "warn")) {
 									justItemsWarn(itemName, neededItems);					
@@ -391,7 +400,7 @@ public class AutoRepairSupport {
 		return usesLeft;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public int findSmallest(ItemStack item) {
 		PlayerInventory inven = player.getInventory();
 		HashMap<Integer, ? extends ItemStack> items = inven.all(item.getTypeId());
@@ -413,7 +422,7 @@ public class AutoRepairSupport {
 		return slot;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public int getTotalItems(ItemStack item) {
 		int total = 0;
 		PlayerInventory inven = player.getInventory();

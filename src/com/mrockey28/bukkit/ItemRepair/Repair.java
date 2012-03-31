@@ -3,6 +3,9 @@ package com.mrockey28.bukkit.ItemRepair;
 
 import java.util.ArrayList;
 import java.util.logging.Logger;
+
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
@@ -28,7 +31,41 @@ public class Repair extends AutoRepairSupport{
 		doRepairOperation(tool, operationType.AUTO_REPAIR);
 		return false;
 	}
-
+	public void repairAll(Player player) {		
+		
+		ArrayList<ItemStack> couldNotRepair = new ArrayList<ItemStack> (0);
+		for (ItemStack item : player.getInventory().getContents())
+		{
+			if (item == null || item.getType() == Material.AIR)
+			{
+				continue;
+			}
+			
+			if (item.getDurability() != 0)
+			{
+				doRepairOperation(item, operationType.FULL_REPAIR);
+				if (item.getDurability() != 0)
+				{
+					couldNotRepair.add(item);
+				}
+			}
+		}
+		
+		if (!couldNotRepair.isEmpty())
+		{
+			String itemsNotRepaired = "";
+			
+			for (ItemStack item : couldNotRepair)
+			{
+				itemsNotRepaired += (item.getType().toString() + ", ");
+			}
+			
+			player.sendMessage("§cDid not repair the following items: ");
+			player.sendMessage("§c" + itemsNotRepaired);
+		}
+		
+	}
+	
 	public void repairArmour() {
 		if (!AutoRepairPlugin.isAllowed(player, "repair")) {
 			player.sendMessage("§cYou dont have permission to do the repair command.");

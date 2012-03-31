@@ -16,6 +16,7 @@ commands:
        '/<command> <?,dmg> as above but for current item.
        '/<command> arm' repairs all your equipped armour.
        '/<command> arm ?' Check armour repair materials.
+       '/<command> all' Repair all items, if possible.
        '/<command> reload' Reloads the config files.
        
 permissions:
