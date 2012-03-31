@@ -107,13 +107,24 @@ public class AutoRepairBlockListener implements Listener {
 
 		ItemStack toolHand = player.getItemInHand();
 		Short dmg = toolHand.getDurability();
-		if (dmg ==1) {
+		if (dmg == 0){
+			return;
+		} else if (dmg ==1) {
 			support.setWarning(false);
 			support.setLastWarning(false);
 		}
 		HashMap<String, Integer> durabilities = AutoRepairPlugin.getDurabilityCosts();
 		String itemName = Material.getMaterial(toolHand.getTypeId()).toString();
-		int durability = durabilities.get(itemName);
+		
+		int durability = 0;
+		if (durabilities.containsKey(itemName)) {
+			durability = durabilities.get(itemName);
+		}
+		else
+		{
+			AutoRepairPlugin.log.info("[AutoRepair][ERROR] Item " + itemName + " is not in the AutoRepair.properties file!");
+			return;
+		}
 		
 		if (dmg > (durability -5)) {
 			repair.autoRepairTool(toolHand);
@@ -141,13 +152,24 @@ public class AutoRepairBlockListener implements Listener {
 			}
 			
 			Short dmg = piece.getDurability();
-			if (dmg ==1) {
+			if (dmg == 0){
+				return;
+			} else if (dmg ==1) {
 				support.setWarning(false);
 				support.setLastWarning(false);
 			}
 			HashMap<String, Integer> durabilities = AutoRepairPlugin.getDurabilityCosts();
 			String itemName = Material.getMaterial(piece.getTypeId()).toString();
-			int durability = durabilities.get(itemName);
+			
+			int durability = 0;
+			if (durabilities.containsKey(itemName)) {
+				durability = durabilities.get(itemName);
+			}
+			else
+			{
+				AutoRepairPlugin.log.info("[AutoRepair][ERROR] Item " + itemName + " is not in the AutoRepair.properties file!");
+				return;
+			}
 			
 			if (dmg > (durability -5)) {
 				repair.autoRepairTool(piece);
