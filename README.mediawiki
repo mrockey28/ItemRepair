@@ -1,3 +1,5 @@
+v1.82
+
 ==Credits==
 A lot of credit goes to lostaris; I heavily adapted his original plugin to make this compatible with Vault, support the latest versions, etc.
 ==At a glace==
@@ -14,10 +16,7 @@ A lot of credit goes to lostaris; I heavily adapted his original plugin to make 
 Allows a player can repair their tools, either manually or automatically just before they break. Automatic repairing will trigger on hitting a block with a tool when the tool is about to break. This repairing can be done at the cost of a given amount of one or more materials, a set amount of money if an economy system is in use, or for free.
 
 ===New===
-* Added Bows
-* Added ability to query for armor repair cost, if it's in a quickslot
-* Warnings now return only items missing from inventory that are needed to fulfill repair cost
-* Info queries and warnings now account for rounding
+* Added "allow enchanted item repair" config option and permission node (see Config.properties for more info)
 
 ==Setup==
 ===AutoRepair.properties===
@@ -43,6 +42,7 @@ Config.properties is also located in the plugin/AutoRepair folder. It contains s
 *'''economy''' controls if the plugin will use iConomy cash ''[true]'', iConomy cash and items ''[both]'', or just items ''[false]''
 *'''item_rounding''' controls if item damage affects item cost ''[round]'', damage affects cost but still a minimum cost of 1 of each item ''[min]'', or damage doesn't affect cost ''[flat]''
 *'''econ_fractioning''' does the same thing as item rounding, but for economy costs, if they're used, and can only be ''[on]'' or ''[off]''
+*'''[NEW] allow_enchanted''' controls if repairing enchanted items is always allowed ''[true]'', never allowed ''[false]'', or ''[permissions]'' based, tied to the AutoRepair.repair.enchanted node.
 
 ==Economy==
 Usage of an economy plugin via Vault is optional. You can configure this plugin to use an economy plugin's cash to charge for a repair. However, if you wish to use an economy plugin you MUST also run Vault.
@@ -55,6 +55,7 @@ Available permission nodes are (case sensitive):
 *AutoRepair.info -- allows the use of the ? and dmg commands
 *AutoRepair.warn - allows warning when a tool is about to break
 *AutoRepair.repair -- allows items in a user's inventory to be repaired, whether automatic or manually
+*AutoRepair.repair.enchanted - allows enchanted items to be repaired, if autorepair config is set accordingly
 *AutoRepair.auto -- enables AutoRepair of tools in a user's inventory
 *AutoRepair.reload -- allows a user to reload the plugin
 
