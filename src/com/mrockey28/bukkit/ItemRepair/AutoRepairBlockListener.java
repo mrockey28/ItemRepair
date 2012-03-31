@@ -152,7 +152,6 @@ public class AutoRepairBlockListener implements Listener {
 			if (dmg > (durability -5)) {
 				repair.autoRepairTool(piece);
 			} else if (durability <= 100 && dmg > (durability - 20)) {
-				//TODO: add support for warning when armor is about to break
 				support.repairWarn(piece);
 			} else if (durability > 100 && dmg > (durability - 100)) {
 				support.repairWarn(piece);

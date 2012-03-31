@@ -27,6 +27,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 	private static HashMap<String, Integer> iConCosts;
 	private HashMap<String, String> settings;
 	private static String useEcon = "false"; //are we using icon, both or not at all
+	private static String allowEnchanted = "true";
 	private static boolean economyFound = false;
 	private static boolean autoRepair;
 	private static boolean repairCosts;
@@ -61,7 +62,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 		refreshConfig();
 		
 		if (!setupEconomy() ) {
-	         log.info(String.format("[%s] - Economy not linked, Vault or Economy plugin not found", getDescription().getName()));
+	         log.info(String.format("[%s] Economy not linked, Vault or Economy plugin not found", getDescription().getName()));
 		 }
 		else
 		{
@@ -100,11 +101,25 @@ public class AutoRepairPlugin extends JavaPlugin {
 			org.bukkit.command.Command command, String commandLabel, String[] args) {
 		Player player = null;
 
+		String[] split = args;
+		
 		if(sender instanceof Player) {
 			player = (Player) sender;
 		}
+		else {
+			if (split.length == 1 && split[0].equalsIgnoreCase("reload"))
+			{
+				refreshConfig();
+				log.info(String.format("[%s] Re-loaded AutoRepair config files.", getDescription().getName()));
+			}
+			else
+			{
+				log.info(String.format("[%s] This command is not supported from the console.", getDescription().getName()));
+			}
+			return true;
+		}
 		PlayerInventory inven = player.getInventory();
-		String[] split = args;
+		
 		String commandName = command.getName().toLowerCase();
 		AutoRepairSupport support = new AutoRepairSupport(this, player);
 
@@ -118,7 +133,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 				argsOneString += (" " + i);
 			}
 
-			log.info("[PLAYER_COMMAND] " + player.getName().toString() + " /" + commandLabel.toString() + argsOneString);
+			log.info("[PLAYER_COMMAND] " + player.getName().toString() + ": /" + commandLabel.toString() + argsOneString);
 			ItemStack tool;
 			int itemSlot = 0;
 			if (split.length == 0) {
@@ -203,7 +218,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 		return false;
 	}
 
-	public static boolean isOpAllowed (Player player, operationType op)
+	public static boolean isOpAllowed (Player player, operationType op, boolean enchanted)
 	{
 		switch(op)
 		{
@@ -221,14 +236,31 @@ public class AutoRepairPlugin extends JavaPlugin {
 			case FULL_REPAIR:
 				if (!isAllowed(player, "repair"))
 				{
-					
 					player.sendMessage("§cYou dont have permission to do the repair command.");
 					return false;
+				} 
+				if (enchanted) {
+					if (allowEnchanted == "false"){
+						player.sendMessage("§cEnchanted items can't be repaired.");
+						return false;
+					} else if (allowEnchanted == "permissions" && !isAllowed(player, "repair.enchanted")){
+						player.sendMessage("§cYou dont have permission to repair enchanted items.");
+						return false;
+					}
 				}
-				else return true;
+				return true;
 			case AUTO_REPAIR:
-				if (!isAllowed(player, "auto")) return false;
-				else return true;	
+				if (!isAllowed(player, "auto") || !isAllowed(player, "repair")) return false;
+				if (enchanted) {
+					if (allowEnchanted == "false"){
+						player.sendMessage("§cEnchanted items can't be repaired.");
+						return false;
+					} else if (allowEnchanted == "permissions" && !isAllowed(player, "repair.enchanted")){
+						player.sendMessage("§cYou dont have permission to repair enchanted items.");
+						return false;
+					}
+				}
+				return true;	
 		}
 		return false;
 	}
@@ -339,6 +371,15 @@ public class AutoRepairPlugin extends JavaPlugin {
 				else {
 					econ_fractioning = "off";
 				}	
+			}
+			if (getSettings().containsKey("allow_enchanted")) {
+				if (getSettings().get("allow_enchanted").equals("false")) {
+					allowEnchanted = "false";
+				} else if (getSettings().get("allow_enchanted").equals("permissions") && isPermissions == true) {
+					allowEnchanted = "permissions";
+				} else {
+					allowEnchanted = "true";
+				}
 			}
 		} catch (Exception e){
 			log.info("Error reading AutoRepair config files");

@@ -1,6 +1,6 @@
 name: AutoRepair
 main: com.mrockey28.bukkit.ItemRepair.AutoRepairPlugin
-version: 1.81.1
+version: 1.82
 authors: [mrockey28, lostaris]
 softdepend: [Vault, PermissionsBukkit]
 commands:
@@ -31,6 +31,9 @@ permissions:
     default: false
   AutoRepair.repair:
     description: Allows use of the repair command
+    default: false
+  AutoRepair.repair.enchanted:
+    description: Allows repairing of enchanted weapons, when config is set to use permissions to configure this
     default: false
   AutoRepair.auto:
     description: Allows autorepair to work on users' items

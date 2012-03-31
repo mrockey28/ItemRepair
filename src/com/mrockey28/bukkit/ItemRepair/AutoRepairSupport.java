@@ -76,7 +76,7 @@ public class AutoRepairSupport {
 	{
 		ArrayList<ItemStack> req;
 		
-		if (!AutoRepairPlugin.isOpAllowed(getPlayer(), op)) {
+		if (!AutoRepairPlugin.isOpAllowed(getPlayer(), op, !tool.getEnchantments().isEmpty())) {
 			return;
 		}
 		if (op == operationType.WARN && !AutoRepairPlugin.isRepairCosts() && !AutoRepairPlugin.isAutoRepair()) {

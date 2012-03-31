@@ -21,7 +21,6 @@ public class Repair extends AutoRepairSupport{
 	}
 	
 	public boolean manualRepair(ItemStack tool) {
-		
 		doRepairOperation(tool, operationType.MANUAL_REPAIR);
 		return false;		
 	}
