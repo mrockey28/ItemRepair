@@ -59,7 +59,6 @@ public class AutoRepairPlugin extends JavaPlugin {
 		// EXAMPLE: Custom code, here we just output some info so we can check all is well
 		PluginDescriptionFile pdfFile = this.getDescription();
 		log.info( pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled" );
-		refreshConfig();
 		
 		if (!setupEconomy() ) {
 	         log.info(String.format("[%s] Economy not linked, Vault or Economy plugin not found", getDescription().getName()));
@@ -68,6 +67,8 @@ public class AutoRepairPlugin extends JavaPlugin {
 		{
 			economyFound = true;
 		}
+		refreshConfig();
+		
 	}
 	 
 
