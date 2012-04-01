@@ -154,14 +154,23 @@ public class AutoRepairSupport {
 		}
 		if (op == operationType.WARN && !warning) warning = true;					
 		else if (op == operationType.WARN) return;
+		if (op == operationType.MANUAL_REPAIR && tool.getDurability() == 0)
+		{
+			player.sendMessage("§3" + tool.getType().toString() + " is already fully repaired.");
+			return;
+		}
+		
 
 		costClass cost = new costClass();
 		ArrayList<ItemStack> req = new ArrayList<ItemStack> (0);
 		
-		if (op == operationType.AUTO_REPAIR) {
+		if (op == operationType.AUTO_REPAIR || op == operationType.WARN) {
 			if (getRepairCost (tool, req, cost, true) == false) return;
 		} else {
-			if (getRepairCost (tool, req, cost, false) == false) return;
+			if (getRepairCost (tool, req, cost, false) == false) {
+				if (op != operationType.FULL_REPAIR) player.sendMessage("§6Can't that perform operation on this item.");
+				return;
+			}
 		}
 		
 		double balance = 0;
@@ -212,7 +221,12 @@ public class AutoRepairSupport {
 							//inven.setItem(slot, repItem(tool));
 							repItem(tool);
 						} else if (op != operationType.FULL_REPAIR){
-							iConWarn(itemName, cost.cost);
+							if (op == operationType.MANUAL_REPAIR || !getLastWarning()) {
+								if (AutoRepairPlugin.isAllowed(player, "warn")) {
+									iConWarn(itemName, cost.cost);				
+								}
+								if (op == operationType.AUTO_REPAIR) setLastWarning(true);							
+							}
 						}
 						break;
 					case WARN:
@@ -397,12 +411,12 @@ public class AutoRepairSupport {
 
 	//prints the durability left of the current tool to the player
 	public void durabilityLeft(ItemStack tool) {
-		if (AutoRepairPlugin.isAllowed(player, "info")) { //!AutoRepairPlugin.isPermissions || AutoRepairPlugin.Permissions.has(player, "AutoRepair.info")) {
+		if (AutoRepairPlugin.isAllowed(player, "info")) {
 			int usesLeft = this.returnUsesLeft(tool);
 			if (usesLeft != -1) {
-				player.sendMessage("§3" + usesLeft + " blocks left untill this tool breaks." );
+				player.sendMessage("§3" + usesLeft + " uses left untill this tool breaks." );
 			} else {
-				player.sendMessage("§6This is not a tool.");
+				player.sendMessage("§6Can't get uses left for this item.");
 			}
 		} else {
 			player.sendMessage("§cYou dont have permission to do the ? or dmg commands.");
@@ -412,10 +426,16 @@ public class AutoRepairSupport {
 
 	public int returnUsesLeft(ItemStack tool) {
 		int usesLeft = -1;
+		int durability = 0;
 		HashMap<String, Integer> durabilities = AutoRepairPlugin.getDurabilityCosts();
 		String itemName = Material.getMaterial(tool.getTypeId()).toString();
-		int durability = durabilities.get(itemName);
-		usesLeft = durability - tool.getDurability();
+		
+		if (durabilities.containsKey(itemName))
+		{
+			durability = durabilities.get(itemName);
+			usesLeft = durability - tool.getDurability();
+		}
+		
 		return usesLeft;
 	}
 
