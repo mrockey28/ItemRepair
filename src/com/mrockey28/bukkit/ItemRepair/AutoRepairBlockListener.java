@@ -11,6 +11,7 @@ import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.ItemStack;
 
 
@@ -90,6 +91,15 @@ public class AutoRepairBlockListener implements Listener {
 		Player player = (Player) event.getEntity();
 		
 		eventAffectsArmor(player);
+	}
+	
+	@EventHandler
+	//If player changes held item, clear out the warning flags
+	public void onPlayerChangeHeldItem(PlayerItemHeldEvent event) {
+		Player player = event.getPlayer();
+		this.support.setPlayer(player);
+		support.setWarning(false);
+		support.setLastWarning(false);
 	}
 	
 //////
