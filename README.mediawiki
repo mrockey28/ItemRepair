@@ -1,4 +1,4 @@
-v1.82.1
+v1.82.2
 
 ==Credits==
 A lot of credit goes to lostaris; I heavily adapted his original plugin to make this compatible with Vault, support the latest versions, etc.

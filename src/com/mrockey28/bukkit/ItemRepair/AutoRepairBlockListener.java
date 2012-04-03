@@ -135,7 +135,7 @@ public class AutoRepairBlockListener implements Listener {
 			return;
 		}
 		
-		if (dmg > (durability -5)) {
+		if (dmg > (durability -2) && AutoRepairPlugin.isAutoRepair()) {
 			repair.autoRepairTool(toolHand);
 		} else if (durability <= 100 && dmg > (durability - 20)) {
 			support.repairWarn(toolHand);
@@ -179,7 +179,7 @@ public class AutoRepairBlockListener implements Listener {
 				return;
 			}
 			
-			if (dmg > (durability -5)) {
+			if (dmg > (durability -2) && AutoRepairPlugin.isAutoRepair()) {
 				repair.autoRepairTool(piece);
 			} else if (durability <= 100 && dmg > (durability - 20)) {
 				support.repairWarn(piece);

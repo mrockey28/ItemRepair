@@ -251,7 +251,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 				}
 				return true;
 			case AUTO_REPAIR:
-				if (!isAllowed(player, "auto") || !isAllowed(player, "repair")) return false;
+				if (!AutoRepairPlugin.isAutoRepair() || !isAllowed(player, "auto") || !isAllowed(player, "repair")) return false;
 				if (enchanted) {
 					if (allowEnchanted == "false"){
 						player.sendMessage("§cEnchanted items can't be repaired.");

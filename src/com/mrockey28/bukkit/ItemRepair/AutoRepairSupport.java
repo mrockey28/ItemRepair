@@ -231,7 +231,7 @@ public class AutoRepairSupport {
 						break;
 					case WARN:
 						if (!AutoRepairPlugin.isAutoRepair()) player.sendMessage("§6WARNING: " + tool.getType() + " will break soon, no auto repairing!");
-						if (cost.cost > balance) {
+						else if (cost.cost > balance) {
 							player.sendMessage("§6WARNING: " + tool.getType() + " will break soon");
 							iConWarn(itemName, cost.cost);
 						}	
