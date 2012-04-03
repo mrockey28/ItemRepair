@@ -1,29 +1,30 @@
-v1.82.2
+v1.83
 
 ==Credits==
 A lot of credit goes to lostaris; I heavily adapted his original plugin to make this compatible with Vault, support the latest versions, etc.
 ==At a glace==
 *Repairs your tools, weapons and armour
-*Repairs can either be free, cost items, cost via economy, or both.
+*Repairs can either be free, cost items, cost via economy, or both; these can vary on a per-item basis.
 *Repairs can be triggered manually or automatically
 *Allows for indestructible tools
 *Works on enchanted items too!
 *Permissions support through PermissionsBukkit (may work, but not tested with, other Permissions systems)
 *Economy support through Vault
-*Manual repairs can be set to have varying cost depending on how damaged the item is
+*Repairs can be set to have varying cost depending on how damaged the item is
 
 ==Features==
 Allows a player can repair their tools, either manually or automatically just before they break. Automatic repairing will trigger on hitting a block with a tool when the tool is about to break. This repairing can be done at the cost of a given amount of one or more materials, a set amount of money if an economy system is in use, or for free.
 
 ===New===
-* Added "allow enchanted item repair" config option and permission node (see Config.properties for more info)
+* Added new config option for "economy" property: keyword 'config' allows per-item cost "type" variance (i.e. economy, item, both), as dictated by the cost listed for each item in the AutoRepair.properties file. See the sections on AutoRepair.properties and Config.properties for more info.
+* Added "allow enchanted item repair" config option and permission node. See Config.properties for more info.
 
 ==Setup==
 ===AutoRepair.properties===
-The AutoRepair.properties file sits in your plugin/AutoRepair folder. This file dictates the items that can be repaired, and the (changeable) values associated with repairing that item. The format is as follows (items in <> are optional):
+The AutoRepair.properties file sits in your plugin/AutoRepair folder. This file dictates the items that can be repaired, and the (changeable) values associated with repairing that item. The format is as follows (items in <> are optional, with one catch, listed below under '''the catch'''):
 
 
-<nowiki>[item to be repaired]:[said item's durability]:[hex val of item to repair with],[amount of that item to use]<:[next item to repair with],[amount of next item to use] econ=[cost of repairing when using economy]></nowiki>
+<nowiki>[item to be repaired]:[said item's durability]:<[hex val of item to repair with],[amount of that item to use]:[next item to repair with],[amount of next item to use] econ=[cost of repairing when using economy]></nowiki>
 
 A real use case is:
 
@@ -32,14 +33,14 @@ A real use case is:
 
 Translation: Gold Spades can be used 33 times before dying; it costs 25 [currency] and/or 1 gravel and 2 sticks to repair. Shears can be used 287 times before dying; they cost 2 ladders to repair.
 
-'''A warning:''' If you have AutoRepair setup to use economy cost or both economy cost and item cost, you '''need''' to have economy costs for every item in your AutoRepair.properties file, or things will not work correctly!
+'''The catch''': Your AutoRepair.properties file must match the "economy" property in your Config.properties file, or things aren't going to work correctly. For example, if you have the config set up to use economy costs, you '''must''' have economy costs in the repair recipes file. If you set the config to use both, you must have both. Additionally, if you set the "economy" property to 'config', you set the cost type of each individual item by varying what costs you list in the recipes file, but you '''must''' have at least ONE cost type listed for each item. 
 
 ===Config.properties===
 Config.properties is also located in the plugin/AutoRepair folder. It contains several settable parameters:
-*'''auto-repair''' controls if the auto repairing is turned on ''[true]'' or off ''[false]''
+*'''auto-repair''' controls if the auto repairing is turned on ''[true]'', off ''[false]'', or off with no warnings ''[false-nowarnings]''
 *'''repair-costs''' controls whether repairs have a cost ''[true]'' or not ''[false]''
 *'''permissions''' controls if the plugin will use ''[true]'' or will not use ''[false]'' the permissions plugin
-*'''economy''' controls if the plugin will use iConomy cash ''[true]'', iConomy cash and items ''[both]'', or just items ''[false]''
+*'''economy''' controls if the plugin will use iConomy cash ''[true]'', iConomy cash and items ''[both]'', just items ''[false]'', or have each item's cost type dictated by the AutoRepair.properties file ''[config]''
 *'''item_rounding''' controls if item damage affects item cost ''[round]'', damage affects cost but still a minimum cost of 1 of each item ''[min]'', or damage doesn't affect cost ''[flat]''
 *'''econ_fractioning''' does the same thing as item rounding, but for economy costs, if they're used, and can only be ''[on]'' or ''[off]''
 *'''[NEW] allow_enchanted''' controls if repairing enchanted items is always allowed ''[true]'', never allowed ''[false]'', or ''[permissions]'' based, tied to the AutoRepair.repair.enchanted node.

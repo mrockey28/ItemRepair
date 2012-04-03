@@ -139,11 +139,15 @@ public class AutoRepairBlockListener implements Listener {
 		
 		if (dmg > (durability -2) && AutoRepairPlugin.isAutoRepair()) {
 			repair.autoRepairTool(toolHand);
-		} else if (durability <= 100 && dmg > (durability - 20)) {
+		}
+		//If the item is not enchanted, warn at 10% left
+		else if (!support.isEnchanted(toolHand) && dmg > (durability - durability/10)) {
 			support.repairWarn(toolHand);
-		} else if (durability > 100 && dmg > (durability - 100)) {
+		}
+		//If the item IS enchanted, warn at 25% left
+		else if (support.isEnchanted(toolHand) && dmg > (durability - (durability/4))){
 			support.repairWarn(toolHand);
-		} 
+		}
 	}
 	
 	//If we need to check the item in hand for breakage when

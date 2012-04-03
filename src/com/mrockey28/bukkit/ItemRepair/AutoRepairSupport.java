@@ -86,24 +86,47 @@ public class AutoRepairSupport {
 		
 	}
 	
-	public boolean getRepairCost (ItemStack tool, ArrayList<ItemStack> req, costClass cost, boolean ignoreRounding) {
+	public boolean getRepairCost (ItemStack tool, ArrayList<ItemStack> req, costClass cost, StringBuilder costType, boolean ignoreRounding) {
 		
 		String itemName = Material.getMaterial(tool.getTypeId()).toString();
 		HashMap<String, ArrayList<ItemStack> > recipies = AutoRepairPlugin.getRepairRecipies();
+		HashMap<String, Integer> econCost = AutoRepairPlugin.getiConCosts();
 		HashMap<String, Integer> durabilities = AutoRepairPlugin.getDurabilityCosts();
 		
-		if (!recipies.containsKey(itemName)) return false;
-		
-		//do a deep copy of the required items list so we can modify it temporarily for rounding purposes
-		for (ItemStack i: recipies.get(itemName)) {
-		  req.add((ItemStack)i.clone());
+		if (!recipies.containsKey(itemName))
+		{
+			if (costType.toString().equals("item_only") || costType.toString().equals("both")) return false;
+			else if (costType.toString().equals("config")) {
+				costType.replace(0, costType.length(), "econ_only");
+			}
+			
+		}
+		else
+		{
+			//do a deep copy of the required items list so we can modify it temporarily for rounding purposes
+			for (ItemStack i: recipies.get(itemName)) {
+			  req.add((ItemStack)i.clone());
+			}
+		}
+			
+		if (!econCost.containsKey(itemName))
+		{
+			if (costType.toString().equals("econ_only") || costType.toString().equals("both")) return false;
+			else if (costType.toString().equals("config")) {
+				costType.replace(0, costType.length(), "item_only");
+			}
+			
+		}
+		else
+		{
+			cost.cost = (double)AutoRepairPlugin.getiConCosts().get(itemName);
 		}
 		
-		if (AutoRepairPlugin.getUseEcon() != "false") {
-			if (AutoRepairPlugin.getiConCosts().containsKey(itemName)) {
-				cost.cost = (double)AutoRepairPlugin.getiConCosts().get(itemName);
-			}
-			else return false;
+		//By this point, if we haven't set the costtype to something other than "config" or returned,
+		//we should set it to "Both".
+		if (costType.toString().equals("config"))
+		{
+			costType.replace(0, costType.length(), "both");
 		}
 		
 		int durability = durabilities.get(itemName);
@@ -133,8 +156,8 @@ public class AutoRepairSupport {
 				}
 					
 			}
-			//If they turned on economy and econ fractioning, round the cost to the correct amount
-			if (AutoRepairPlugin.getUseEcon() != "false" && AutoRepairPlugin.econ_fractioning == "on")
+			//If they turned on economy cost and econ fractioning, round the cost to the correct amount
+			if (!costType.toString().equals("item_only") && AutoRepairPlugin.econ_fractioning == "on")
 			{
 				cost.cost = cost.cost * percentUsed;
 			}
@@ -143,49 +166,86 @@ public class AutoRepairSupport {
 	}
 	
 	
+	public boolean isEnchanted(ItemStack tool)
+	{
+		return !tool.getEnchantments().isEmpty();
+	}
+	
+	public void setLocalCostType(StringBuilder costType) {
+	
+		if (AutoRepairPlugin.getUseEcon().equalsIgnoreCase("true")) {
+			costType.append("econ_only");
+		}
+		else if (AutoRepairPlugin.getUseEcon().equalsIgnoreCase("false")) {
+			costType.append("item_only");
+		}
+		else if (AutoRepairPlugin.getUseEcon().equalsIgnoreCase("both")) {
+			costType.append("both");
+		}
+		else if (AutoRepairPlugin.getUseEcon().equalsIgnoreCase("config")) {
+			costType.append("config");
+		}
+		else {
+			costType.append("item_only");
+		}
+	}
 	
 	public void doRepairOperation(ItemStack tool, AutoRepairPlugin.operationType op)
 	{
-		if (!AutoRepairPlugin.isOpAllowed(getPlayer(), op, !tool.getEnchantments().isEmpty())) {
+		//If you don't have repair, warn, access, repair.enchanted permissions (whatever necessary to get in here)
+		//this won't let you in. If autorepair is turned off, and you're trying to do an auto-repair operation,
+		//this won't let you past
+		if (!AutoRepairPlugin.isOpAllowed(getPlayer(), op, isEnchanted(tool))) {
 			return;
 		}
-		if (op == operationType.WARN && !AutoRepairPlugin.isRepairCosts() && !AutoRepairPlugin.isAutoRepair()) {
-			player.sendMessage("§6WARNING: " + tool.getType() + " will break soon");
-		}
+		
+		//handle warning flag stuff, to prevent log spam
 		if (op == operationType.WARN && !warning) warning = true;					
 		else if (op == operationType.WARN) return;
+		
+		//Prevent manual repairs on fully repaired tools
 		if (op == operationType.MANUAL_REPAIR && tool.getDurability() == 0)
 		{
 			player.sendMessage("§3" + tool.getType().toString() + " is already fully repaired.");
 			return;
 		}
 		
-
+		StringBuilder costType = new StringBuilder();
+		//Handle switching the cost type, since it varies for each item we have to do it here so that we don't mess up the actual config setting
+		setLocalCostType(costType);
+		
 		costClass cost = new costClass();
 		ArrayList<ItemStack> req = new ArrayList<ItemStack> (0);
-		
-		if (op == operationType.AUTO_REPAIR || op == operationType.WARN) {
-			if (getRepairCost (tool, req, cost, true) == false) return;
-		} else {
-			if (getRepairCost (tool, req, cost, false) == false) {
-				if (op != operationType.FULL_REPAIR) player.sendMessage("§6Can't that perform operation on this item.");
-				return;
-			}
-		}
-		
 		double balance = 0;
-		if (AutoRepairPlugin.getUseEcon() != "false") {
-			balance = AutoRepairPlugin.econ.getBalance(player.getName());
+		
+		//It only makes sense calculate adjusted cost if there IS a cost to repairing an item
+		if (AutoRepairPlugin.isRepairCosts()) {
+			if (op == operationType.AUTO_REPAIR || op == operationType.WARN) {
+				if (getRepairCost (tool, req, cost, costType, true) == false) return;
+			} else {
+				if (getRepairCost (tool, req, cost, costType, false) == false) {
+					if (op != operationType.FULL_REPAIR) player.sendMessage("§6Can't that perform operation on this item.");
+					return;
+				}
+			}
+			if (!costType.equals("item_only")) {
+				balance = AutoRepairPlugin.econ.getBalance(player.getName());
+			}
 		}
 		
 		String itemName = Material.getMaterial(tool.getTypeId()).toString();
 		ArrayList<ItemStack> neededItems = new ArrayList<ItemStack>(0);
+		
+		
 		try {
 			//No repair costs
 			if (!AutoRepairPlugin.isRepairCosts()) {
 				switch (op)
 				{
 					case WARN:
+						if (!AutoRepairPlugin.isAutoRepair() && !AutoRepairPlugin.suppressWarningsWithNoAutoRepair()) {
+							player.sendMessage("§6WARNING: " + tool.getType() + " will break soon");
+						}
 						break;
 					case AUTO_REPAIR:
 					case MANUAL_REPAIR:
@@ -202,7 +262,7 @@ public class AutoRepairSupport {
 			}
 			
 			//Using economy to pay only
-			else if (AutoRepairPlugin.getUseEcon().compareToIgnoreCase("true") == 0)
+			else if (costType.equals("econ_only"))
 			{
 				switch (op)
 				{	case QUERY:
@@ -230,7 +290,9 @@ public class AutoRepairSupport {
 						}
 						break;
 					case WARN:
-						if (!AutoRepairPlugin.isAutoRepair()) player.sendMessage("§6WARNING: " + tool.getType() + " will break soon, no auto repairing!");
+						if (!AutoRepairPlugin.isAutoRepair() && !AutoRepairPlugin.suppressWarningsWithNoAutoRepair()) {
+							player.sendMessage("§6WARNING: " + tool.getType() + " will break soon, no auto repairing!");
+						}
 						else if (cost.cost > balance) {
 							player.sendMessage("§6WARNING: " + tool.getType() + " will break soon");
 							iConWarn(itemName, cost.cost);
@@ -240,7 +302,7 @@ public class AutoRepairSupport {
 			} 
 			
 			//Using both economy and item costs to pay
-			else if (AutoRepairPlugin.getUseEcon().compareToIgnoreCase("both") == 0) 
+			else if (costType.equals("both")) 
 			{	
 				switch (op)
 				{
@@ -274,7 +336,9 @@ public class AutoRepairSupport {
 						}
 						break;
 					case WARN:
-							if (!AutoRepairPlugin.isAutoRepair()) player.sendMessage("§6WARNING: " + tool.getType() + " will break soon, no auto repairing!");
+							if (!AutoRepairPlugin.isAutoRepair() && !AutoRepairPlugin.suppressWarningsWithNoAutoRepair()) {
+								player.sendMessage("§6WARNING: " + tool.getType() + " will break soon, no auto repairing!");
+							}
 							else if (cost.cost > balance || !isEnoughItems(req, neededItems)) {
 								player.sendMessage("§6WARNING: " + tool.getType() + " will break soon");
 								if (cost.cost > balance && !isEnoughItems(req, neededItems)) bothWarn(itemName, cost.cost, neededItems);
@@ -303,7 +367,6 @@ public class AutoRepairSupport {
 							if (op != operationType.FULL_REPAIR) {
 								player.sendMessage("§3Using " + printFormatReqs(req) + " to repair " + itemName);
 							}
-							
 						} else if (op != operationType.FULL_REPAIR){
 							if (op == operationType.MANUAL_REPAIR || !getLastWarning()) {
 								if (AutoRepairPlugin.isAllowed(player, "warn")) {
@@ -314,7 +377,9 @@ public class AutoRepairSupport {
 						}
 						break;
 					case WARN:
-						if (!AutoRepairPlugin.isAutoRepair()) player.sendMessage("§6WARNING: " + tool.getType() + " will break soon, no auto repairing!");
+						if (!AutoRepairPlugin.isAutoRepair() && !AutoRepairPlugin.suppressWarningsWithNoAutoRepair()) {
+							player.sendMessage("§6WARNING: " + tool.getType() + " will break soon, no auto repairing!");
+						}
 						else if (!isEnoughItems(req, neededItems)) {
 							player.sendMessage("§6WARNING: " + tool.getType() + " will break soon");
 							justItemsWarn(itemName, neededItems);
@@ -337,7 +402,11 @@ public class AutoRepairSupport {
 	{
 		costClass costTemp = new costClass();
 		ArrayList<ItemStack> reqTemp = new ArrayList<ItemStack> (0);
-		if (getRepairCost (armor, reqTemp, costTemp, false) == false) return false;
+		StringBuilder costType = new StringBuilder();
+		//Handle switching the cost type, since it varies for each item we have to do it here so that we don't mess up the actual config setting
+		setLocalCostType(costType);
+		
+		if (getRepairCost (armor, reqTemp, costTemp, costType, false) == false) return false;
 		
 		boolean replaced = false;
 		for (ItemStack i : reqTemp)
@@ -380,16 +449,21 @@ public class AutoRepairSupport {
 						 }
 					}
 					
-					if (AutoRepairPlugin.getUseEcon().compareToIgnoreCase("true") == 0){
-						player.sendMessage("§6To repair all your armour you need: "
-								+ AutoRepairPlugin.econ.format(cost.cost));					
-						// icon and item cost
-					} else if (AutoRepairPlugin.getUseEcon().compareToIgnoreCase("both") == 0) {					
+					//There were econ and item costs
+					if (!req.isEmpty() && cost.cost != 0) {					
 						player.sendMessage("§6To repair all your armour you need: "
 								+ AutoRepairPlugin.econ.format(cost.cost));
 						player.sendMessage("§6and " + this.printFormatReqs(req));		
-						// just item cost
-					} else {
+
+					} 
+					//There were only econ costs
+					else if (req.isEmpty()){
+						player.sendMessage("§6To repair all your armour you need: "
+								+ AutoRepairPlugin.econ.format(cost.cost));					
+
+					}
+					//There were only item costs
+					else {
 						player.sendMessage("§6To repair all your armour you need:");
 						player.sendMessage("§6" + this.printFormatReqs(req));
 					}
