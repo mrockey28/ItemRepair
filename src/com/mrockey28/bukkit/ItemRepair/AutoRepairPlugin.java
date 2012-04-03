@@ -26,10 +26,10 @@ public class AutoRepairPlugin extends JavaPlugin {
 	private static HashMap<String, ArrayList<ItemStack>> repairRecipies;
 	private static HashMap<String, Integer> iConCosts;
 	private HashMap<String, String> settings;
-	private static String useEcon = "false"; //are we using icon, both or not at all
+	private static String useEcon = "false"; //are we using econ, not using econ, using econ and items, or letting the AutoRepair.properties file decide?
 	private static String allowEnchanted = "true";
 	private static boolean economyFound = false;
-	private static boolean autoRepair;
+	private static String autoRepair = "true";
 	private static boolean repairCosts;
 	public static boolean isPermissions = false;
 	
@@ -311,13 +311,14 @@ public class AutoRepairPlugin extends JavaPlugin {
 			readProperties();
 			setSettings(readConfig());
 			if (getSettings().containsKey("auto-repair")) {
-				if (getSettings().get("auto-repair").equals("false")) {
-					setAutoRepair(false);
+				if (getSettings().get("auto-repair").equalsIgnoreCase("false")) {
+					setAutoRepair("false");
+				} else if (getSettings().get("auto-repair").equalsIgnoreCase("false-nowarnings")) {
+					setAutoRepair("false-nowarnings");
 				}
 				//If somebody fucks up, the default is true
-				else
-				{
-					setAutoRepair(true);
+				else {
+					setAutoRepair("true");
 				}
 			}
 			if (getSettings().containsKey("repair-costs")) {
@@ -337,6 +338,8 @@ public class AutoRepairPlugin extends JavaPlugin {
 					setUseEcon("true");
 				} else if (getSettings().get("economy").equals("both")) {
 					setUseEcon("both");
+				} else if (getSettings().get("economy").equals("config")) {
+					setUseEcon("config");
 				}
 				//If somebody fucks up, the default is false
 				else{
@@ -462,12 +465,26 @@ public class AutoRepairPlugin extends JavaPlugin {
 		return settings;
 	}
 
-	public void setAutoRepair(boolean autoRepair) {
+	public void setAutoRepair(String autoRepair) {
 		AutoRepairPlugin.autoRepair = autoRepair;
 	}
 
 	public static boolean isAutoRepair() {
-		return autoRepair;
+		if (autoRepair.equalsIgnoreCase("false-nowarnings") || autoRepair.equalsIgnoreCase("false")) {
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+		
+	}
+	
+	public static boolean suppressWarningsWithNoAutoRepair() {
+		if (autoRepair.equalsIgnoreCase("false-nowarnings")) {
+			return true;
+		}
+		return false;
 	}
 
 	public void setRepairCosts(boolean repairCosts) {
