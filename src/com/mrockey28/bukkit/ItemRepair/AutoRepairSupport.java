@@ -236,7 +236,6 @@ public class AutoRepairSupport {
 		String itemName = Material.getMaterial(tool.getTypeId()).toString();
 		ArrayList<ItemStack> neededItems = new ArrayList<ItemStack>(0);
 		
-		
 		try {
 			//No repair costs
 			if (!AutoRepairPlugin.isRepairCosts()) {
@@ -262,7 +261,7 @@ public class AutoRepairSupport {
 			}
 			
 			//Using economy to pay only
-			else if (costType.equals("econ_only"))
+			else if (costType.toString().equals("econ_only"))
 			{
 				switch (op)
 				{	case QUERY:
@@ -302,7 +301,7 @@ public class AutoRepairSupport {
 			} 
 			
 			//Using both economy and item costs to pay
-			else if (costType.equals("both")) 
+			else if (costType.toString().equals("both")) 
 			{	
 				switch (op)
 				{

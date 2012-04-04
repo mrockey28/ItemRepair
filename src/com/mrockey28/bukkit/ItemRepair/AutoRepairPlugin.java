@@ -308,7 +308,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 
 	public void refreshConfig() {
 		try {
-			readProperties();
+			
 			setSettings(readConfig());
 			if (getSettings().containsKey("auto-repair")) {
 				if (getSettings().get("auto-repair").equalsIgnoreCase("false")) {
@@ -385,6 +385,9 @@ public class AutoRepairPlugin extends JavaPlugin {
 					allowEnchanted = "true";
 				}
 			}
+			
+			//read in autorepair.properties file
+			readProperties();
 		} catch (Exception e){
 			log.info("Error reading AutoRepair config files");
 		}
@@ -423,7 +426,12 @@ public class AutoRepairPlugin extends JavaPlugin {
 			for (int i =0; i < allReqs.length; i++) {
 				if (i==0)
 				{
-					durability = Integer.parseInt(allReqs[0]);
+					try {
+						durability = Integer.parseInt(allReqs[0]);
+					} catch (Exception e)
+					{
+						log.info("[AutoRepair][ERROR] Bad or no durability given for item " + item + "!");
+					}
 				}
 				else
 				{
@@ -432,8 +440,21 @@ public class AutoRepairPlugin extends JavaPlugin {
 					itemReqs.add(currItem);
 				}
 			}
-			map.put(item, itemReqs);
-			durab.put(item, durability);
+			
+			//put the recipe into the hashmap, if the recipe exists
+			if (!itemReqs.isEmpty()) {
+				map.put(item, itemReqs);
+			}
+			//If there is no recipe and no econ cost, and repair costs are enabled, throw an error
+			else if (!iConomy.containsKey(item) && isRepairCosts())
+			{
+				log.info("[AutoRepair][ERROR] No cost given for item " + item + "!");
+			}
+			
+			//stick durability in the hashmap. if there is no durability, throw an error
+			if (durability != 0){
+				durab.put(item, durability);
+			}
 		}
 		reader.close();
 		setiConCosts(iConomy);

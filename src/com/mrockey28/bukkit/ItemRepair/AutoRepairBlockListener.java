@@ -13,7 +13,6 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
-import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
 
 
@@ -95,7 +94,7 @@ public class AutoRepairBlockListener implements Listener {
 		eventAffectsArmor(player);
 	}
 	
-	//@EventHandler(priority = EventPriority.LOWEST)
+	@EventHandler(priority = EventPriority.LOWEST)
 	//If player changes held item, clear out the warning flags
 	public void onPlayerChangeHeldItem(PlayerItemHeldEvent event) {
 		Player player = event.getPlayer();
@@ -145,7 +144,7 @@ public class AutoRepairBlockListener implements Listener {
 			support.repairWarn(toolHand);
 		}
 		//If the item IS enchanted, warn at 25% left
-		else if (support.isEnchanted(toolHand) && dmg > (durability - (durability/4))){
+		else if (support.isEnchanted(toolHand) && (dmg > (durability - (durability/4)) || dmg > (durability - 10))){
 			support.repairWarn(toolHand);
 		}
 	}
