@@ -359,7 +359,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 			if (getSettings().containsKey("item_rounding")) {
 				if (getSettings().get("item_rounding").equals("min")) {
 					item_rounding = "min";
-				} if (getSettings().get("item_rounding").equals("round")) {
+				} else if (getSettings().get("item_rounding").equals("round")) {
 					item_rounding = "round";
 				}
 				//If somebody fucks up, the default is "flat"
