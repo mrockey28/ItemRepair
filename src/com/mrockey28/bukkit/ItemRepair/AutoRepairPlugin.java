@@ -325,6 +325,12 @@ public class AutoRepairPlugin extends JavaPlugin {
 				if (getSettings().get("repair-costs").equals("false")) {
 					setRepairCosts(false);
 				}
+				//In the case where somebody tried to use econ, but no economy found, 
+				//let them know and then don't use repair costs.
+				else if (economyFound == false && !getSettings().get("economy").equals("false")) {
+					log.info(String.format("[%s] Tried to use economy costs per config, but economy not linked, turning off repair costs.", getDescription().getName()));
+					setRepairCosts(false);
+				}
 				//If somebody fucks up, the default is true
 				else
 				{

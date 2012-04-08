@@ -228,7 +228,7 @@ public class AutoRepairSupport {
 					return;
 				}
 			}
-			if (!costType.equals("item_only")) {
+			if (!costType.toString().equals("item_only")) {
 				balance = AutoRepairPlugin.econ.getBalance(player.getName());
 			}
 		}
