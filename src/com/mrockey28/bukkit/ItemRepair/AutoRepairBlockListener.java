@@ -136,15 +136,17 @@ public class AutoRepairBlockListener implements Listener {
 			return;
 		}
 		
-		if (dmg > (durability -2) && AutoRepairPlugin.isAutoRepair()) {
+		if (dmg > (durability -3) && AutoRepairPlugin.isAutoRepair()) {
 			repair.autoRepairTool(toolHand);
 		}
-		//If the item is not enchanted, warn at 10% left
-		else if (!support.isEnchanted(toolHand) && dmg > (durability - durability/10)) {
+		//If the item is not enchanted, warn at some level
+		else if (!support.isEnchanted(toolHand) && (dmg > (durability - 10))) {
 			support.repairWarn(toolHand);
 		}
-		//If the item IS enchanted, warn at 25% left
-		else if (support.isEnchanted(toolHand) && (dmg > (durability - (durability/4)) || dmg > (durability - 10))){
+		//If the item IS enchanted, warn at a different level
+		else if (support.isEnchanted(toolHand) && 
+				((dmg > (durability - 30)) && (dmg > 60) ||
+				(dmg > (durability - 15)))) {
 			support.repairWarn(toolHand);
 		}
 	}
@@ -184,7 +186,7 @@ public class AutoRepairBlockListener implements Listener {
 				return;
 			}
 			
-			if (dmg > (durability -2) && AutoRepairPlugin.isAutoRepair()) {
+			if (dmg > (durability -3) && AutoRepairPlugin.isAutoRepair()) {
 				repair.autoRepairTool(piece);
 			} else if (durability <= 100 && dmg > (durability - 20)) {
 				support.repairWarn(piece);
