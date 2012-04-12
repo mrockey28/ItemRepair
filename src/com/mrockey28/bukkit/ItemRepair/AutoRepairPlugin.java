@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Logger;
 import org.bukkit.entity.Player;
+import org.bukkit.configuration.*;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -39,8 +41,6 @@ public class AutoRepairPlugin extends JavaPlugin {
 	public static final Logger log = Logger.getLogger("Minecraft");
 	//public AutoRepairSupport support = new AutoRepairSupport(this);
 	public Repair repair = new Repair(this);
-
-
 	
 	public enum operationType {
 		QUERY,
@@ -397,6 +397,11 @@ public class AutoRepairPlugin extends JavaPlugin {
 		} catch (Exception e){
 			log.info("Error reading AutoRepair config files");
 		}
+		
+		getConfig().createSection("recipes", getRepairRecipies());
+		saveConfig();
+		log.info(getConfig().getKeys(true).toString());
+		log.info(getConfig().contains("recipes.GOLD_HOE") + " " + getConfig().contains("repair.GOLD_HOE.enchanted"));
 	}
 
 	public static void readProperties() throws Exception {
@@ -466,6 +471,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 		setiConCosts(iConomy);
 		setRepairRecipies(map);
 		setDurabilityCosts(durab);
+	
 	}
 
 	public void setUseEcon(String b) {
