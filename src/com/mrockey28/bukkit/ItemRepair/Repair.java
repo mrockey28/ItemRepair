@@ -38,7 +38,7 @@ public class Repair extends AutoRepairSupport{
 		
 		for (ItemStack item : player.getInventory().getContents())
 		{
-			if (item == null || item.getType() == Material.AIR)
+			if (item == null || item.getType() == Material.AIR || item.getType() == Material.WOOL)
 			{
 				continue;
 			}
