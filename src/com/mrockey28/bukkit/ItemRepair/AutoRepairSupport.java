@@ -219,19 +219,18 @@ public class AutoRepairSupport {
 		double balance = 0;
 		
 		//It only makes sense calculate adjusted cost if there IS a cost to repairing an item
-		if (AutoRepairPlugin.isRepairCosts()) {
-			if (op == operationType.AUTO_REPAIR || op == operationType.WARN) {
-				if (getRepairCost (tool, req, cost, costType, true) == false) return;
-			} else {
-				if (getRepairCost (tool, req, cost, costType, false) == false) {
-					if (op != operationType.FULL_REPAIR) player.sendMessage("§6Can't that perform operation on this item.");
-					return;
-				}
-			}
-			if (!costType.toString().equals("item_only")) {
-				balance = AutoRepairPlugin.econ.getBalance(player.getName());
+		if (op == operationType.AUTO_REPAIR || op == operationType.WARN) {
+			if (getRepairCost (tool, req, cost, costType, true) == false) return;
+		} else {
+			if (getRepairCost (tool, req, cost, costType, false) == false) {
+				if (op != operationType.FULL_REPAIR) player.sendMessage("§6Can't that perform operation on this item.");
+				return;
 			}
 		}
+		if (!costType.toString().equals("item_only")) {
+			balance = AutoRepairPlugin.econ.getBalance(player.getName());
+		}
+
 		
 		String itemName = Material.getMaterial(tool.getTypeId()).toString();
 		ArrayList<ItemStack> neededItems = new ArrayList<ItemStack>(0);
@@ -248,7 +247,7 @@ public class AutoRepairSupport {
 						break;
 					case AUTO_REPAIR:
 					case MANUAL_REPAIR:
-						getPlayer().sendMessage("§3Repaired " + itemName);
+						if (AutoRepairPlugin.issueRepairedNotificationWhenNoRepairCost == true) getPlayer().sendMessage("§3Repaired " + itemName);
 					case FULL_REPAIR:
 						repItem(tool);
 						break;
