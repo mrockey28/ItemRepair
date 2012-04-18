@@ -1,4 +1,4 @@
-v1.83.3
+v1.83.4
 
 ==Credits==
 A lot of credit goes to lostaris; I heavily adapted his original plugin to make this compatible with Vault, support the latest versions, etc.
@@ -38,7 +38,7 @@ Translation: Gold Spades can be used 33 times before dying; it costs 25 [currenc
 ===Config.properties===
 Config.properties is also located in the plugin/AutoRepair folder. It contains several settable parameters:
 *'''auto-repair''' controls if the auto repairing is turned on ''[true]'', off ''[false]'', or off with no warnings ''[false-nowarnings]''
-*'''repair-costs''' controls whether repairs have a cost ''[true]'' or not ''[false]''
+*'''repair-costs''' controls whether repairs have a cost ''[true]'' or not ''[false]''; ''[false-nomessages]'' turns off repair costs and "item repaired" notifications. 
 *'''permissions''' controls if the plugin will use ''[true]'' or will not use ''[false]'' the permissions plugin
 *'''economy''' controls if the plugin will use iConomy cash ''[true]'', iConomy cash and items ''[both]'', just items ''[false]'', or have each item's cost type dictated by the AutoRepair.properties file ''[config]''
 *'''item_rounding''' controls if item damage affects item cost ''[round]'', damage affects cost but still a minimum cost of 1 of each item ''[min]'', or damage doesn't affect cost ''[flat]''

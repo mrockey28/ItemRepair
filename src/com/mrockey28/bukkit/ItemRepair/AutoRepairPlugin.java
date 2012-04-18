@@ -33,6 +33,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 	private static boolean economyFound = false;
 	private static String autoRepair = "true";
 	private static boolean repairCosts;
+	static boolean issueRepairedNotificationWhenNoRepairCost = true;
 	public static boolean isPermissions = false;
 	
 	public static Economy econ = null;
@@ -322,8 +323,13 @@ public class AutoRepairPlugin extends JavaPlugin {
 				}
 			}
 			if (getSettings().containsKey("repair-costs")) {
+				issueRepairedNotificationWhenNoRepairCost = true;
 				if (getSettings().get("repair-costs").equals("false")) {
 					setRepairCosts(false);
+				}
+				else if (getSettings().get("repair-costs").equals("false-nomessages")) {
+					setRepairCosts(false);
+					issueRepairedNotificationWhenNoRepairCost = false;
 				}
 				//In the case where somebody tried to use econ, but no economy found, 
 				//let them know and then don't use repair costs.
