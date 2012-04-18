@@ -8,6 +8,8 @@ import java.util.logging.Logger;
 import org.bukkit.entity.Player;
 import org.bukkit.configuration.*;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -15,7 +17,7 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import net.milkbowl.vault.economy.Economy;
 
-
+import com.mrockey28.bukkit.ItemRepair.RepairRecipe;
 
 /**
  * testing for Bukkit
@@ -51,12 +53,15 @@ public class AutoRepairPlugin extends JavaPlugin {
 		FULL_REPAIR
 	}
 	
+	static {
+		ConfigurationSerialization.registerClass(RepairRecipe.class);
+	}
 
 	public void onEnable() {
 		//  Place any custom enable code here including the registration of any events
 		// Register our events
 		getServer().getPluginManager().registerEvents(blockListener, this);
-
+		
 		// EXAMPLE: Custom code, here we just output some info so we can check all is well
 		PluginDescriptionFile pdfFile = this.getDescription();
 		log.info( pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled" );
@@ -403,25 +408,22 @@ public class AutoRepairPlugin extends JavaPlugin {
 		} catch (Exception e){
 			log.info("Error reading AutoRepair config files");
 		}
-		
-		getConfig().createSection("recipes", getRepairRecipies());
-		saveConfig();
-		log.info(getConfig().getKeys(true).toString());
-		log.info(getConfig().contains("recipes.GOLD_HOE") + " " + getConfig().contains("repair.GOLD_HOE.enchanted"));
 	}
 
-	public static void readProperties() throws Exception {
+	public void readProperties() throws Exception {
 		HashMap<String, ArrayList<ItemStack> > map = new HashMap<String, ArrayList<ItemStack> >();
 		HashMap<String, Integer> iConomy = new HashMap<String, Integer>();
 		HashMap<String, Integer> durab = new HashMap<String, Integer>();
 		String fileName = "plugins/AutoRepair/RepairCosts.properties";
 		BufferedReader reader = new BufferedReader(new FileReader(fileName));
+		
 		String line;
 		while ((line = reader.readLine()) != null) {
 			if ((line.trim().length() == 0) || 
 					(line.charAt(0) == '#')) {
 				continue;
 			}
+			RepairRecipe recipe = new RepairRecipe();
 			int keyPosition = line. indexOf('=');
 			String[] reqs;
 			ArrayList<ItemStack> itemReqs = new ArrayList<ItemStack>();
@@ -432,6 +434,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 				try {
 					int amount = Integer.parseInt(line.substring(line.lastIndexOf("=") +1, line.length()));
 					iConomy.put(item, amount);
+					recipe.setEconCost(amount);
 				} catch (Exception e) {
 				}
 			} else {
@@ -455,6 +458,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 					reqs = allReqs[i].split(",");
 					ItemStack currItem = new ItemStack(Integer.parseInt(reqs[0]), Integer.parseInt(reqs[1]));
 					itemReqs.add(currItem);
+					recipe.addItemCost(currItem);
 				}
 			}
 			
@@ -472,7 +476,9 @@ public class AutoRepairPlugin extends JavaPlugin {
 			if (durability != 0){
 				durab.put(item, durability);
 			}
+			getConfig().createSection("recipes."+item, recipe.serialize());
 		}
+		saveConfig();
 		reader.close();
 		setiConCosts(iConomy);
 		setRepairRecipies(map);
