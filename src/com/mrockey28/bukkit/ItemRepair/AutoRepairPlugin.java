@@ -1,6 +1,8 @@
 package com.mrockey28.bukkit.ItemRepair;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -72,6 +74,20 @@ public class AutoRepairPlugin extends JavaPlugin {
 		else
 		{
 			economyFound = true;
+		}
+		File f = new File("plugins/AutoRepair/config.yml");
+		if (!f.exists())
+		{
+			String fileName = "plugins/AutoRepair/RepairCosts.properties";
+			f = new File(fileName);
+			if (f.exists()) {
+				log.info("convertold");
+				convertOldConfig();	
+			} else {
+				log.info("make new");
+				getConfig().options().copyDefaults(true);
+				saveConfig();
+			}	
 		}
 		refreshConfig();
 		
@@ -311,11 +327,15 @@ public class AutoRepairPlugin extends JavaPlugin {
 		return settings;
 
 	}
-
 	public void refreshConfig() {
+		//TODO
+	}
+	
+	public void convertOldConfig() {
 		try {
 			
 			setSettings(readConfig());
+			getConfig().createSection("config", getSettings());
 			if (getSettings().containsKey("auto-repair")) {
 				if (getSettings().get("auto-repair").equalsIgnoreCase("false")) {
 					setAutoRepair("false");
@@ -435,6 +455,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 					int amount = Integer.parseInt(line.substring(line.lastIndexOf("=") +1, line.length()));
 					iConomy.put(item, amount);
 					recipe.setEconCost(amount);
+					recipe.setCostType("econ");
 				} catch (Exception e) {
 				}
 			} else {
@@ -459,6 +480,14 @@ public class AutoRepairPlugin extends JavaPlugin {
 					ItemStack currItem = new ItemStack(Integer.parseInt(reqs[0]), Integer.parseInt(reqs[1]));
 					itemReqs.add(currItem);
 					recipe.addItemCost(currItem);
+					if (recipe.getCostType() == "econ")
+					{
+						recipe.setCostType("both");
+					}
+					else
+					{
+						recipe.setCostType("item");
+					}
 				}
 			}
 			
@@ -479,6 +508,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 			getConfig().createSection("recipes."+item, recipe.serialize());
 		}
 		saveConfig();
+		log.info("finished loading config");
 		reader.close();
 		setiConCosts(iConomy);
 		setRepairRecipies(map);

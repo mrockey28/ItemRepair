@@ -1,0 +1,429 @@
+config:
+  allow_enchanted: 'false'
+  econ_fractioning: 'on'
+  item_rounding: round
+  economy: 'false'
+  permissions: 'true'
+  auto-repair: 'true'
+  repair-costs: false-nomessages
+recipes:
+  LEATHER_HELMET:
+    normal:
+      LEATHER: 5
+      cost-type: both
+      econ-cost: 1.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  LEATHER_CHESTPLATE:
+    normal:
+      LEATHER: 8
+      cost-type: both
+      econ-cost: 2.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  LEATHER_LEGGINGS:
+    normal:
+      LEATHER: 7
+      cost-type: both
+      econ-cost: 3.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  LEATHER_BOOTS:
+    normal:
+      LEATHER: 4
+      cost-type: both
+      econ-cost: 4.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  IRON_HELMET:
+    normal:
+      IRON_INGOT: 5
+      cost-type: both
+      econ-cost: 5.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  IRON_CHESTPLATE:
+    normal:
+      IRON_INGOT: 8
+      cost-type: both
+      econ-cost: 6.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  IRON_LEGGINGS:
+    normal:
+      IRON_INGOT: 7
+      cost-type: both
+      econ-cost: 7.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  IRON_BOOTS:
+    normal:
+      IRON_INGOT: 4
+      cost-type: both
+      econ-cost: 8.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  DIAMOND_HELMET:
+    normal:
+      DIAMOND: 5
+      cost-type: both
+      econ-cost: 9.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  DIAMOND_CHESTPLATE:
+    normal:
+      DIAMOND: 8
+      cost-type: both
+      econ-cost: 10.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  DIAMOND_LEGGINGS:
+    normal:
+      DIAMOND: 7
+      cost-type: both
+      econ-cost: 11.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  DIAMOND_BOOTS:
+    normal:
+      DIAMOND: 4
+      cost-type: both
+      econ-cost: 12.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  GOLD_HELMET:
+    normal:
+      GOLD_INGOT: 5
+      cost-type: both
+      econ-cost: 13.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  GOLD_CHESTPLATE:
+    normal:
+      GOLD_INGOT: 8
+      cost-type: both
+      econ-cost: 14.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  GOLD_LEGGINGS:
+    normal:
+      GOLD_INGOT: 7
+      cost-type: both
+      econ-cost: 15.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  GOLD_BOOTS:
+    normal:
+      GOLD_INGOT: 4
+      cost-type: both
+      econ-cost: 16.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  CHAINMAIL_HELMET:
+    normal:
+      IRON_INGOT: 5
+      cost-type: both
+      econ-cost: 17.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  CHAINMAIL_CHESTPLATE:
+    normal:
+      IRON_INGOT: 8
+      cost-type: both
+      econ-cost: 18.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  CHAINMAIL_LEGGINGS:
+    normal:
+      IRON_INGOT: 7
+      cost-type: both
+      econ-cost: 19.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  CHAINMAIL_BOOTS:
+    normal:
+      IRON_INGOT: 4
+      cost-type: both
+      econ-cost: 20.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  GOLD_HOE:
+    normal:
+      STICK: 2
+      GOLD_INGOT: 3
+      cost-type: item
+      econ-cost: 21.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  GOLD_SPADE:
+    normal:
+      STICK: 1
+      GOLD_INGOT: 3
+      cost-type: item
+      econ-cost: 22.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  GOLD_PICKAXE:
+    normal:
+      STICK: 2
+      GOLD_INGOT: 3
+      cost-type: item
+      econ-cost: 23.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  GOLD_AXE:
+    normal:
+      STICK: 2
+      GOLD_INGOT: 3
+      cost-type: item
+      econ-cost: 24.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  WOOD_HOE:
+    normal:
+      STICK: 2
+      cost-type: item
+      econ-cost: 25.0
+      WOOD: 3
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  WOOD_SPADE:
+    normal:
+      STICK: 2
+      cost-type: item
+      econ-cost: 26.0
+      WOOD: 1
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  WOOD_PICKAXE:
+    normal:
+      STICK: 2
+      cost-type: item
+      econ-cost: 27.0
+      WOOD: 3
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  WOOD_AXE:
+    normal:
+      STICK: 2
+      cost-type: item
+      econ-cost: 28.0
+      WOOD: 3
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  STONE_HOE:
+    normal:
+      COBBLESTONE: 3
+      STICK: 2
+      cost-type: item
+      econ-cost: 29.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  STONE_SPADE:
+    normal:
+      COBBLESTONE: 1
+      STICK: 2
+      cost-type: item
+      econ-cost: 30.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  STONE_PICKAXE:
+    normal:
+      COBBLESTONE: 3
+      STICK: 2
+      cost-type: item
+      econ-cost: 31.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  STONE_AXE:
+    normal:
+      COBBLESTONE: 3
+      STICK: 2
+      cost-type: item
+      econ-cost: 32.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  IRON_HOE:
+    normal:
+      IRON_INGOT: 3
+      STICK: 2
+      cost-type: item
+      econ-cost: 33.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  IRON_SPADE:
+    normal:
+      IRON_INGOT: 1
+      STICK: 2
+      cost-type: item
+      econ-cost: 34.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  IRON_PICKAXE:
+    normal:
+      IRON_INGOT: 3
+      STICK: 2
+      cost-type: item
+      econ-cost: 35.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  IRON_AXE:
+    normal:
+      IRON_INGOT: 3
+      STICK: 2
+      cost-type: item
+      econ-cost: 36.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  DIAMOND_HOE:
+    normal:
+      DIAMOND: 3
+      STICK: 2
+      cost-type: item
+      econ-cost: 37.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  DIAMOND_SPADE:
+    normal:
+      DIAMOND: 1
+      STICK: 2
+      cost-type: item
+      econ-cost: 38.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  DIAMOND_PICKAXE:
+    normal:
+      DIAMOND: 3
+      STICK: 2
+      cost-type: item
+      econ-cost: 39.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  DIAMOND_AXE:
+    normal:
+      DIAMOND: 3
+      STICK: 2
+      cost-type: item
+      econ-cost: 40.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  FLINT_AND_STEEL:
+    normal:
+      IRON_INGOT: 1
+      cost-type: item
+      FLINT: 1
+      econ-cost: 41.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  FISHING_ROD:
+    normal:
+      STICK: 3
+      cost-type: item
+      econ-cost: 42.0
+      STRING: 2
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  SHEARS:
+    normal:
+      IRON_INGOT: 2
+      cost-type: both
+      econ-cost: 43.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  BOW:
+    normal:
+      STICK: 3
+      cost-type: item
+      econ-cost: 44.0
+      STRING: 3
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  WOOD_SWORD:
+    normal:
+      STICK: 1
+      cost-type: item
+      econ-cost: 45.0
+      WOOD: 2
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  GOLD_SWORD:
+    normal:
+      STICK: 1
+      GOLD_INGOT: 2
+      cost-type: item
+      econ-cost: 46.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  STONE_SWORD:
+    normal:
+      COBBLESTONE: 2
+      STICK: 1
+      cost-type: item
+      econ-cost: 47.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  IRON_SWORD:
+    normal:
+      IRON_INGOT: 2
+      STICK: 1
+      cost-type: item
+      econ-cost: 48.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
+  DIAMOND_SWORD:
+    normal:
+      DIAMOND: 2
+      STICK: 1
+      cost-type: item
+      econ-cost: 49.0
+    enchanted:
+      cost-type: ''
+      econ-cost: 0.0
