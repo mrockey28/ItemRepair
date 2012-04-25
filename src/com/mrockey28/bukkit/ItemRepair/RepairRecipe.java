@@ -12,13 +12,22 @@ public class RepairRecipe implements ConfigurationSerializable{
 
 	public recipe normal;
 	public recipe enchanted;
+	public enum RecipeType {
+		NORMAL,
+		ENCHANTED
+	}
 	
 	public HashMap<String, Object> serialize() {
 		
 		HashMap<String, Object> serialOutput = new HashMap<String, Object>();
 		
-		serialOutput.put("normal", normal.serialize());
-		serialOutput.put("enchanted", enchanted.serialize());
+		if (!normal.serialize().isEmpty()) {
+			serialOutput.put("normal", normal.serialize());
+		}
+		
+		if (!enchanted.serialize().isEmpty()) {
+			serialOutput.put("enchanted", enchanted.serialize());
+		}
 		
 		return serialOutput;
 	}
@@ -36,22 +45,95 @@ public class RepairRecipe implements ConfigurationSerializable{
 	}
 	
 	
-	public void setMaterial (Material passedMat) {
-		normal.material = passedMat.toString();
+	public void setMaterial (Material passedMat, RecipeType type) {
+		if (type == RecipeType.NORMAL)
+		{
+			normal.setMaterial(passedMat);
+		}
+		else
+		{
+			enchanted.setMaterial(passedMat);
+		}
 	}
 	
-	public void addItemCost (ItemStack newItem) {
-		normal.repairItems.add(newItem);
+	public Material getMaterial (RecipeType type) {
+		if (type == RecipeType.NORMAL)
+		{
+			return normal.getMaterial();
+		}
+		else
+		{
+			return enchanted.getMaterial();
+		}
 	}
 	
-	public void setEconCost(double newCost) {
-		normal.econCost = newCost;
+	public void addItemCost (ItemStack newItem, RecipeType type) {
+		if (type == RecipeType.NORMAL)
+		{
+			normal.addItemCost(newItem);
+		}
+		else
+		{
+			enchanted.addItemCost(newItem);
+		}
+		
 	}
-	public void setCostType (String newCostType) {
-		normal.setCostType(newCostType);
+	
+	public ArrayList<ItemStack> getItemCost (RecipeType type) {
+		if (type == RecipeType.NORMAL)
+		{
+			return normal.getItemCost();
+		}
+		else
+		{
+			return enchanted.getItemCost();
+		}
+		
 	}
-	public String getCostType () {
-		return normal.costType;
+	
+	public void setEconCost(double newCost, RecipeType type) {
+		if (type == RecipeType.NORMAL)
+		{
+			normal.setEconCost(newCost);
+		}
+		else
+		{
+			enchanted.setEconCost(newCost);
+		}	
+	}
+	
+	public double getEconCost(RecipeType type) {
+		if (type == RecipeType.NORMAL)
+		{
+			return normal.getEconCost();
+		}
+		else
+		{
+			return enchanted.getEconCost();
+		}	
+	}
+	
+	public void setCostType (String newCostType, RecipeType type) {
+		if (type == RecipeType.NORMAL)
+		{
+			normal.setCostType(newCostType);
+		}
+		else
+		{
+			enchanted.setCostType(newCostType);
+		}
+		
+	}
+	public String getCostType (RecipeType type) {
+		if (type == RecipeType.NORMAL)
+		{
+			return normal.getCostType();
+		}
+		else
+		{
+			return enchanted.getCostType();
+		}
+		
 	}
 	
 	
@@ -61,34 +143,47 @@ public class RepairRecipe implements ConfigurationSerializable{
 		private ArrayList<ItemStack> repairItems;
 		private double econCost;
 		
-		public recipe() {
+		private recipe() {
 			costType = "";
 			material = "";
 			repairItems = new ArrayList<ItemStack>(0);
 			econCost = 0;
 		}
 		
-		public HashMap<String, Object> serialize() {
+		private HashMap<String, Object> serialize() {
 			
 			HashMap<String, Object> serialOutput = new HashMap<String, Object>();
 			
-			serialOutput.put("cost-type", costType);
+			//This will all be empty if there is nothing of relevance to do
+			if (costType != "")
+			{
+				serialOutput.put("cost-type", costType);
+			}
 			for (ItemStack i : repairItems)
 			{
 				serialOutput.put(i.getType().toString(), i.getAmount());
 			}
-			serialOutput.put("econ-cost", econCost);
+			if (econCost > 0) {
+				serialOutput.put("econ-cost", econCost);
+			}
 			
 			return serialOutput;
 		}
 		
-		public recipe(Object input) {
+		private recipe(Object input) {
+			@SuppressWarnings("unchecked")
 			HashMap<String, Object> serialInput = (HashMap<String, Object>) input;
+			
+			//We remove the known possible other fields besides the recipe ingredients from the map
+			//so that we can run through all the recipe ingredients at the end
 			if (serialInput.containsKey("econ-cost")) {
 				econCost = (Double) serialInput.get("econ-cost");
 				serialInput.remove("econ-cost");
 			}
-			
+			if (serialInput.containsKey("cost-type")) {
+				costType = (String) serialInput.get("econ-cost");
+				serialInput.remove("cost-type");
+			}
 			while (!serialInput.isEmpty()) {
 				ItemStack item = new ItemStack(0);
 				Map.Entry<String, Object> entry = serialInput.entrySet().iterator().next();
@@ -99,28 +194,42 @@ public class RepairRecipe implements ConfigurationSerializable{
 				serialInput.remove(entry.getKey());
 			}
 		}
-		public void setCostType (String newCostType) {
+		
+		private void setCostType (String newCostType) {
 			if (newCostType == "item" || newCostType == "econ" || newCostType == "both")
 			{
 				costType = newCostType;
 			}
 		}
-		public void setMaterial (Material passedMat) {
+		
+		private String getCostType () {
+			return costType;
+		}
+		
+		private void setMaterial (Material passedMat) {
 			material = passedMat.toString();
 		}
 		
-		public void addItemCost (ItemStack newItem) {
+		private Material getMaterial ()
+		{
+			return Material.getMaterial(material.toString());
+		}
+		
+		private void addItemCost (ItemStack newItem) {
 			repairItems.add(newItem);
 		}
 		
-		public void setEconCost(double newCost) {
+		private ArrayList<ItemStack> getItemCost () {
+			return repairItems;
+		}
+		
+		private void setEconCost(double newCost) {
 			econCost = newCost;
 		}
 		
-		public void Clear() {
-			material = "";
-			repairItems.clear();
-			econCost = 0;
+		private double getEconCost()
+		{
+			return econCost;
 		}
 	}
 	

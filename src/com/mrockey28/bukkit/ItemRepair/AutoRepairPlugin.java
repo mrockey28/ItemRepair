@@ -2,16 +2,12 @@ package com.mrockey28.bukkit.ItemRepair;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Logger;
 import org.bukkit.entity.Player;
-import org.bukkit.configuration.*;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
-import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -20,12 +16,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 import net.milkbowl.vault.economy.Economy;
 
 import com.mrockey28.bukkit.ItemRepair.RepairRecipe;
+import com.mrockey28.bukkit.ItemRepair.RepairRecipe.RecipeType;
 
 /**
  * testing for Bukkit
  *
  * @author lostaris, mrockey28
  */
+
 public class AutoRepairPlugin extends JavaPlugin {
 	private final AutoRepairBlockListener blockListener = new AutoRepairBlockListener(this);
 	private static HashMap<String, Integer> durabilityCosts;
@@ -81,13 +79,16 @@ public class AutoRepairPlugin extends JavaPlugin {
 			String fileName = "plugins/AutoRepair/RepairCosts.properties";
 			f = new File(fileName);
 			if (f.exists()) {
-				log.info("convertold");
+				convertOldRepairCosts();	
+			}
+			fileName = "plugins/AutoRepair/Config.properties";
+			f = new File(fileName);
+			if (f.exists()) {
 				convertOldConfig();	
-			} else {
-				log.info("make new");
-				getConfig().options().copyDefaults(true);
-				saveConfig();
-			}	
+			}
+			
+			getConfig().options().copyDefaults(true);
+			saveConfig();
 		}
 		refreshConfig();
 		
@@ -328,7 +329,101 @@ public class AutoRepairPlugin extends JavaPlugin {
 
 	}
 	public void refreshConfig() {
-		//TODO
+		refreshSettings();
+		refreshRecipes();
+	}
+	
+	public void refreshSettings() {
+		if (getConfig().contains("config.auto-repair")) {
+			if (getConfig().get("config.auto-repair").toString().equalsIgnoreCase("false")) {
+				setAutoRepair("false");
+			} else if (getConfig().get("config.auto-repair").toString().equalsIgnoreCase("false-nowarnings")) {
+				setAutoRepair("false-nowarnings");
+			}
+			//If somebody fucks up, the default is true
+			else {
+				setAutoRepair("true");
+			}
+		}
+		if (getConfig().contains("config.repair-costs")) {
+			issueRepairedNotificationWhenNoRepairCost = true;
+			if (getConfig().get("config.repair-costs").toString().equalsIgnoreCase("false")) {
+				setRepairCosts(false);
+			}
+			else if (getConfig().get("config.repair-costs").toString().equalsIgnoreCase("false-nomessages")) {
+				setRepairCosts(false);
+				issueRepairedNotificationWhenNoRepairCost = false;
+			}
+			//In the case where somebody tried to use econ, but no economy found, 
+			//let them know and then don't use repair costs.
+			else if (economyFound == false && !getConfig().get("config.economy").toString().equalsIgnoreCase("false")) {
+				log.info(String.format("[%s] Tried to use economy costs per config, but economy not linked, turning off repair costs.", getDescription().getName()));
+				setRepairCosts(false);
+			}
+			//If somebody fucks up, the default is true
+			else
+			{
+				setRepairCosts(true);
+			}
+		}
+		if (getConfig().contains("config.economy")) {
+			if (economyFound == false) {
+				setUseEcon("false");
+			} else if (getConfig().get("config.economy").toString().equalsIgnoreCase("true")) {
+				setUseEcon("true");
+			} else if (getConfig().get("config.economy").toString().equalsIgnoreCase("both")) {
+				setUseEcon("both");
+			} else if (getConfig().get("config.economy").toString().equalsIgnoreCase("config")) {
+				setUseEcon("config");
+			}
+			//If somebody fucks up, the default is false
+			else{
+				setUseEcon("false");
+			}
+		}
+		if (getConfig().contains("config.permissions")) {
+			if (getConfig().get("config.permissions").toString().equalsIgnoreCase("true")) {
+				AutoRepairPlugin.isPermissions = true;
+			}
+			//If somebody fucks up, the default is false
+			else
+			{
+				AutoRepairPlugin.isPermissions = false;
+			}
+		}
+		if (getConfig().contains("config.item_rounding")) {
+			if (getConfig().get("config.item_rounding").toString().equalsIgnoreCase("min")) {
+				item_rounding = "min";
+			} else if (getConfig().get("config.item_rounding").toString().equalsIgnoreCase("round")) {
+				item_rounding = "round";
+			}
+			//If somebody fucks up, the default is "flat"
+			else {
+				item_rounding = "flat";
+			} 
+		}
+		if (getConfig().contains("config.econ_fractioning")) {
+			if (getConfig().get("config.econ_fractioning").toString().equalsIgnoreCase("on")) {
+				econ_fractioning = "on";
+			} 
+			//If somebody fucks up, the default is "off"
+			else {
+				econ_fractioning = "off";
+			}	
+		}
+		if (getConfig().contains("config.allow_enchanted")) {
+			if (getConfig().get("config.allow_enchanted").toString().equalsIgnoreCase("false")) {
+				allowEnchanted = "false";
+			} else if (getConfig().get("config.allow_enchanted").toString().equalsIgnoreCase("permissions") && isPermissions == true) {
+				allowEnchanted = "permissions";
+			} else {
+				allowEnchanted = "true";
+			}
+		}
+	}
+	
+	public void refreshRecipes() {
+		getConfig().getConfigurationSection("recipes").getValues(arg0)
 	}
 	
 	public void convertOldConfig() {
@@ -336,183 +431,103 @@ public class AutoRepairPlugin extends JavaPlugin {
 			
 			setSettings(readConfig());
 			getConfig().createSection("config", getSettings());
-			if (getSettings().containsKey("auto-repair")) {
-				if (getSettings().get("auto-repair").equalsIgnoreCase("false")) {
-					setAutoRepair("false");
-				} else if (getSettings().get("auto-repair").equalsIgnoreCase("false-nowarnings")) {
-					setAutoRepair("false-nowarnings");
-				}
-				//If somebody fucks up, the default is true
-				else {
-					setAutoRepair("true");
-				}
-			}
-			if (getSettings().containsKey("repair-costs")) {
-				issueRepairedNotificationWhenNoRepairCost = true;
-				if (getSettings().get("repair-costs").equals("false")) {
-					setRepairCosts(false);
-				}
-				else if (getSettings().get("repair-costs").equals("false-nomessages")) {
-					setRepairCosts(false);
-					issueRepairedNotificationWhenNoRepairCost = false;
-				}
-				//In the case where somebody tried to use econ, but no economy found, 
-				//let them know and then don't use repair costs.
-				else if (economyFound == false && !getSettings().get("economy").equals("false")) {
-					log.info(String.format("[%s] Tried to use economy costs per config, but economy not linked, turning off repair costs.", getDescription().getName()));
-					setRepairCosts(false);
-				}
-				//If somebody fucks up, the default is true
-				else
-				{
-					setRepairCosts(true);
-				}
-			}
-			if (getSettings().containsKey("economy")) {
-				if (economyFound == false) {
-					setUseEcon("false");
-				} else if (getSettings().get("economy").equals("true")) {
-					setUseEcon("true");
-				} else if (getSettings().get("economy").equals("both")) {
-					setUseEcon("both");
-				} else if (getSettings().get("economy").equals("config")) {
-					setUseEcon("config");
-				}
-				//If somebody fucks up, the default is false
-				else{
-					setUseEcon("false");
-				}
-			}
-			if (getSettings().containsKey("permissions")) {
-				if (getSettings().get("permissions").equals("true")) {
-					AutoRepairPlugin.isPermissions = true;
-				}
-				//If somebody fucks up, the default is false
-				else
-				{
-					AutoRepairPlugin.isPermissions = false;
-				}
-			}
-			if (getSettings().containsKey("item_rounding")) {
-				if (getSettings().get("item_rounding").equals("min")) {
-					item_rounding = "min";
-				} else if (getSettings().get("item_rounding").equals("round")) {
-					item_rounding = "round";
-				}
-				//If somebody fucks up, the default is "flat"
-				else {
-					item_rounding = "flat";
-				} 
-			}
-			if (getSettings().containsKey("econ_fractioning")) {
-				if (getSettings().get("econ_fractioning").equals("on")) {
-					econ_fractioning = "on";
-				} 
-				//If somebody fucks up, the default is "off"
-				else {
-					econ_fractioning = "off";
-				}	
-			}
-			if (getSettings().containsKey("allow_enchanted")) {
-				if (getSettings().get("allow_enchanted").equals("false")) {
-					allowEnchanted = "false";
-				} else if (getSettings().get("allow_enchanted").equals("permissions") && isPermissions == true) {
-					allowEnchanted = "permissions";
-				} else {
-					allowEnchanted = "true";
-				}
-			}
+			
 			
 			//read in autorepair.properties file
-			readProperties();
 		} catch (Exception e){
-			log.info("Error reading AutoRepair config files");
+			log.info("Error reading AutoRepair config file");
 		}
 	}
 
-	public void readProperties() throws Exception {
-		HashMap<String, ArrayList<ItemStack> > map = new HashMap<String, ArrayList<ItemStack> >();
-		HashMap<String, Integer> iConomy = new HashMap<String, Integer>();
-		HashMap<String, Integer> durab = new HashMap<String, Integer>();
-		String fileName = "plugins/AutoRepair/RepairCosts.properties";
-		BufferedReader reader = new BufferedReader(new FileReader(fileName));
-		
-		String line;
-		while ((line = reader.readLine()) != null) {
-			if ((line.trim().length() == 0) || 
-					(line.charAt(0) == '#')) {
-				continue;
-			}
-			RepairRecipe recipe = new RepairRecipe();
-			int keyPosition = line. indexOf('=');
-			String[] reqs;
-			ArrayList<ItemStack> itemReqs = new ArrayList<ItemStack>();
-			String item = line.substring(0, keyPosition).trim();
-			String recipiesString;
-			if (line.indexOf(' ') != -1) {
-				recipiesString = line.substring(keyPosition+1, line.indexOf(' '));
-				try {
-					int amount = Integer.parseInt(line.substring(line.lastIndexOf("=") +1, line.length()));
-					iConomy.put(item, amount);
-					recipe.setEconCost(amount);
-					recipe.setCostType("econ");
-				} catch (Exception e) {
+	public void convertOldRepairCosts() {
+		try {
+			HashMap<String, ArrayList<ItemStack> > map = new HashMap<String, ArrayList<ItemStack> >();
+			HashMap<String, Integer> iConomy = new HashMap<String, Integer>();
+			HashMap<String, Integer> durab = new HashMap<String, Integer>();
+			String fileName = "plugins/AutoRepair/RepairCosts.properties";
+			BufferedReader reader = new BufferedReader(new FileReader(fileName));
+			
+			String line;
+			while ((line = reader.readLine()) != null) {
+				if ((line.trim().length() == 0) || 
+						(line.charAt(0) == '#')) {
+					continue;
 				}
-			} else {
-				recipiesString = line.substring(keyPosition+1, line.length()).trim();
-			}
-
-			String[] allReqs = recipiesString.split(":");
-			int durability = 0;
-			for (int i =0; i < allReqs.length; i++) {
-				if (i==0)
-				{
+				RepairRecipe recipe = new RepairRecipe();
+				int keyPosition = line. indexOf('=');
+				String[] reqs;
+				ArrayList<ItemStack> itemReqs = new ArrayList<ItemStack>();
+				String item = line.substring(0, keyPosition).trim();
+				String recipiesString;
+				if (line.indexOf(' ') != -1) {
+					recipiesString = line.substring(keyPosition+1, line.indexOf(' '));
 					try {
-						durability = Integer.parseInt(allReqs[0]);
-					} catch (Exception e)
-					{
-						log.info("[AutoRepair][ERROR] Bad or no durability given for item " + item + "!");
+						int amount = Integer.parseInt(line.substring(line.lastIndexOf("=") +1, line.length()));
+						iConomy.put(item, amount);
+						recipe.setEconCost(amount, RecipeType.NORMAL);
+						recipe.setCostType("econ", RecipeType.NORMAL);
+					} catch (Exception e) {
 					}
+				} else {
+					recipiesString = line.substring(keyPosition+1, line.length()).trim();
 				}
-				else
-				{
-					reqs = allReqs[i].split(",");
-					ItemStack currItem = new ItemStack(Integer.parseInt(reqs[0]), Integer.parseInt(reqs[1]));
-					itemReqs.add(currItem);
-					recipe.addItemCost(currItem);
-					if (recipe.getCostType() == "econ")
+	
+				String[] allReqs = recipiesString.split(":");
+				int durability = 0;
+				for (int i =0; i < allReqs.length; i++) {
+					if (i==0)
 					{
-						recipe.setCostType("both");
+						try {
+							durability = Integer.parseInt(allReqs[0]);
+						} catch (Exception e)
+						{
+							log.info("[AutoRepair][ERROR] Bad or no durability given for item " + item + "!");
+						}
 					}
 					else
 					{
-						recipe.setCostType("item");
+						reqs = allReqs[i].split(",");
+						ItemStack currItem = new ItemStack(Integer.parseInt(reqs[0]), Integer.parseInt(reqs[1]));
+						itemReqs.add(currItem);
+						recipe.addItemCost(currItem, RecipeType.NORMAL);
+						if (recipe.getCostType(RecipeType.NORMAL) == "econ")
+						{
+							recipe.setCostType("both", RecipeType.NORMAL);
+						}
+						else
+						{
+							recipe.setCostType("item", RecipeType.NORMAL);
+						}
 					}
 				}
+				
+				//put the recipe into the hashmap, if the recipe exists
+				if (!itemReqs.isEmpty()) {
+					map.put(item, itemReqs);
+				}
+				//If there is no recipe and no econ cost, and repair costs are enabled, throw an error
+				else if (!iConomy.containsKey(item) && isRepairCosts())
+				{
+					log.info("[AutoRepair][ERROR] No cost given for item " + item + "!");
+				}
+				
+				//stick durability in the hashmap. if there is no durability, throw an error
+				if (durability != 0){
+					durab.put(item, durability);
+				}
+				getConfig().createSection("recipes."+item, recipe.serialize());
 			}
-			
-			//put the recipe into the hashmap, if the recipe exists
-			if (!itemReqs.isEmpty()) {
-				map.put(item, itemReqs);
-			}
-			//If there is no recipe and no econ cost, and repair costs are enabled, throw an error
-			else if (!iConomy.containsKey(item) && isRepairCosts())
-			{
-				log.info("[AutoRepair][ERROR] No cost given for item " + item + "!");
-			}
-			
-			//stick durability in the hashmap. if there is no durability, throw an error
-			if (durability != 0){
-				durab.put(item, durability);
-			}
-			getConfig().createSection("recipes."+item, recipe.serialize());
+			saveConfig();
+			log.info("finished loading config");
+			reader.close();
+			setiConCosts(iConomy);
+			setRepairRecipies(map);
+			setDurabilityCosts(durab);
 		}
-		saveConfig();
-		log.info("finished loading config");
-		reader.close();
-		setiConCosts(iConomy);
-		setRepairRecipies(map);
-		setDurabilityCosts(durab);
+		catch (Exception e)
+		{
+			log.info("Error reading AutoRepair recipe file");
+		}
 	
 	}
 
