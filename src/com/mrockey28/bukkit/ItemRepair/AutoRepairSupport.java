@@ -90,7 +90,7 @@ public class AutoRepairSupport {
 		
 		String itemName = Material.getMaterial(tool.getTypeId()).toString();
 		HashMap<String, ArrayList<ItemStack> > recipies = AutoRepairPlugin.getRepairRecipies();
-		HashMap<String, Integer> econCost = AutoRepairPlugin.getiConCosts();
+		HashMap<String, Double> econCost = AutoRepairPlugin.getiConCosts();
 		HashMap<String, Integer> durabilities = AutoRepairPlugin.getDurabilityCosts();
 		
 		if (!recipies.containsKey(itemName))
@@ -119,7 +119,7 @@ public class AutoRepairSupport {
 		}
 		else
 		{
-			cost.cost = (double)AutoRepairPlugin.getiConCosts().get(itemName);
+			cost.cost = AutoRepairPlugin.getiConCosts().get(itemName);
 		}
 		
 		//By this point, if we haven't set the costtype to something other than "config" or returned,

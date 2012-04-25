@@ -24,7 +24,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 	private final AutoRepairBlockListener blockListener = new AutoRepairBlockListener(this);
 	private static HashMap<String, Integer> durabilityCosts;
 	private static HashMap<String, ArrayList<ItemStack>> repairRecipies;
-	private static HashMap<String, Integer> iConCosts;
+	private static HashMap<String, Double> iConCosts;
 	private HashMap<String, String> settings;
 	private static String useEcon = "false"; //are we using econ, not using econ, using econ and items, or letting the AutoRepair.properties file decide?
 	private static String allowEnchanted = "true";
@@ -407,7 +407,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 
 	public static void readProperties() throws Exception {
 		HashMap<String, ArrayList<ItemStack> > map = new HashMap<String, ArrayList<ItemStack> >();
-		HashMap<String, Integer> iConomy = new HashMap<String, Integer>();
+		HashMap<String, Double> iConomy = new HashMap<String, Double>();
 		HashMap<String, Integer> durab = new HashMap<String, Integer>();
 		String fileName = "plugins/AutoRepair/RepairCosts.properties";
 		BufferedReader reader = new BufferedReader(new FileReader(fileName));
@@ -425,7 +425,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 			if (line.indexOf(' ') != -1) {
 				recipiesString = line.substring(keyPosition+1, line.indexOf(' '));
 				try {
-					int amount = Integer.parseInt(line.substring(line.lastIndexOf("=") +1, line.length()));
+					double amount = Double.parseDouble(line.substring(line.lastIndexOf("=") +1, line.length()));
 					iConomy.put(item, amount);
 				} catch (Exception e) {
 				}
@@ -528,11 +528,11 @@ public class AutoRepairPlugin extends JavaPlugin {
 		return repairCosts;
 	}
 
-	public static void setiConCosts(HashMap<String, Integer> iConomy) {
+	public static void setiConCosts(HashMap<String, Double> iConomy) {
 		AutoRepairPlugin.iConCosts = iConomy;
 	}
 
-	public static HashMap<String, Integer> getiConCosts() {
+	public static HashMap<String, Double> getiConCosts() {
 		return iConCosts;
 	}
 	
