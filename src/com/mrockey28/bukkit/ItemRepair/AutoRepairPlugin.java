@@ -302,6 +302,11 @@ public class AutoRepairPlugin extends JavaPlugin {
 			}			
 		}catch (Exception e) {
 			log.info("Error reading AutoRepair config");
+			//If we do fail to read the config files, this means that autorepair will fail without notification,
+			//unless we do something about it. 
+			//Graceful failure dictates that we do something about it. Therefore, we will turn auto-repair off
+			//until the config is able to be read again.
+			setAutoRepair("false");
 		}		
 		return settings;
 
@@ -397,81 +402,97 @@ public class AutoRepairPlugin extends JavaPlugin {
 					allowEnchanted = "true";
 				}
 			}
-			
-			//read in autorepair.properties file
-			readProperties();
 		} catch (Exception e){
-			log.info("Error reading AutoRepair config files");
+			log.info("Error reading AutoRepair's config.properties file!");
 		}
+		
+		//read in autorepair.properties file
+		readProperties();
 	}
 
-	public static void readProperties() throws Exception {
+	public static void readProperties() {
+		
 		HashMap<String, ArrayList<ItemStack> > map = new HashMap<String, ArrayList<ItemStack> >();
 		HashMap<String, Double> iConomy = new HashMap<String, Double>();
 		HashMap<String, Integer> durab = new HashMap<String, Integer>();
-		String fileName = "plugins/AutoRepair/RepairCosts.properties";
-		BufferedReader reader = new BufferedReader(new FileReader(fileName));
-		String line;
-		while ((line = reader.readLine()) != null) {
-			if ((line.trim().length() == 0) || 
-					(line.charAt(0) == '#')) {
-				continue;
-			}
-			int keyPosition = line. indexOf('=');
-			String[] reqs;
-			ArrayList<ItemStack> itemReqs = new ArrayList<ItemStack>();
-			String item = line.substring(0, keyPosition).trim();
-			String recipiesString;
-			if (line.indexOf(' ') != -1) {
-				recipiesString = line.substring(keyPosition+1, line.indexOf(' '));
-				try {
-					double amount = Double.parseDouble(line.substring(line.lastIndexOf("=") +1, line.length()));
-					iConomy.put(item, amount);
-				} catch (Exception e) {
+		
+		try {
+			
+			String fileName = "plugins/AutoRepair/RepairCosts.properties";
+			BufferedReader reader = new BufferedReader(new FileReader(fileName));
+			String line;
+			while ((line = reader.readLine()) != null) {
+				if ((line.trim().length() == 0) || 
+						(line.charAt(0) == '#')) {
+					continue;
 				}
-			} else {
-				recipiesString = line.substring(keyPosition+1, line.length()).trim();
-			}
-
-			String[] allReqs = recipiesString.split(":");
-			int durability = 0;
-			for (int i =0; i < allReqs.length; i++) {
-				if (i==0)
-				{
+				int keyPosition = line. indexOf('=');
+				String[] reqs;
+				ArrayList<ItemStack> itemReqs = new ArrayList<ItemStack>();
+				String item = line.substring(0, keyPosition).trim();
+				String recipiesString;
+				if (line.indexOf(' ') != -1) {
+					recipiesString = line.substring(keyPosition+1, line.indexOf(' '));
 					try {
-						durability = Integer.parseInt(allReqs[0]);
-					} catch (Exception e)
+						double amount = Double.parseDouble(line.substring(line.lastIndexOf("=") +1, line.length()));
+						iConomy.put(item, amount);
+					} catch (Exception e) {
+					}
+				} else {
+					recipiesString = line.substring(keyPosition+1, line.length()).trim();
+				}
+	
+				String[] allReqs = recipiesString.split(":");
+				int durability = 0;
+				for (int i =0; i < allReqs.length; i++) {
+					if (i==0)
 					{
-						log.info("[AutoRepair][ERROR] Bad or no durability given for item " + item + "!");
+						try {
+							durability = Integer.parseInt(allReqs[0]);
+						} catch (Exception e)
+						{
+							log.info("[AutoRepair][ERROR] Bad or no durability given for item " + item + "!");
+						}
+					}
+					else
+					{
+						reqs = allReqs[i].split(",");
+						ItemStack currItem = new ItemStack(Integer.parseInt(reqs[0]), Integer.parseInt(reqs[1]));
+						itemReqs.add(currItem);
 					}
 				}
-				else
+				
+				//put the recipe into the hashmap, if the recipe exists
+				if (!itemReqs.isEmpty()) {
+					map.put(item, itemReqs);
+				}
+				//If there is no recipe and no econ cost, and repair costs are enabled, throw an error
+				else if (!iConomy.containsKey(item) && isRepairCosts())
 				{
-					reqs = allReqs[i].split(",");
-					ItemStack currItem = new ItemStack(Integer.parseInt(reqs[0]), Integer.parseInt(reqs[1]));
-					itemReqs.add(currItem);
+					log.info("[AutoRepair][ERROR] No cost given for item " + item + "!");
+				}
+				
+				//stick durability in the hashmap. if there is no durability, throw an error
+				if (durability != 0){
+					durab.put(item, durability);
 				}
 			}
-			
-			//put the recipe into the hashmap, if the recipe exists
-			if (!itemReqs.isEmpty()) {
-				map.put(item, itemReqs);
-			}
-			//If there is no recipe and no econ cost, and repair costs are enabled, throw an error
-			else if (!iConomy.containsKey(item) && isRepairCosts())
-			{
-				log.info("[AutoRepair][ERROR] No cost given for item " + item + "!");
-			}
-			
-			//stick durability in the hashmap. if there is no durability, throw an error
-			if (durability != 0){
-				durab.put(item, durability);
-			}
+			reader.close();
 		}
-		reader.close();
+		catch (Exception e){
+			log.info("Error reading AutoRepair's RepairCosts.properties file!");
+			
+
+		}
+		
+		//Whether or not we fail, we want this assignment to happen.
+		//If we do fail to read the config files, this means that the maps used to store the durability and costs
+		//for repairs will be NULL at this point. If this happens, we should make sure these maps are just empty, and not null.
+		
 		setiConCosts(iConomy);
 		setRepairRecipies(map);
 		setDurabilityCosts(durab);
+		
 	}
 
 	public void setUseEcon(String b) {

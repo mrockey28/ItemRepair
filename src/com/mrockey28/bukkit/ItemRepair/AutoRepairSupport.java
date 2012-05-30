@@ -119,7 +119,7 @@ public class AutoRepairSupport {
 		}
 		else
 		{
-			cost.cost = AutoRepairPlugin.getiConCosts().get(itemName);
+			cost.cost = econCost.get(itemName);
 		}
 		
 		//By this point, if we haven't set the costtype to something other than "config" or returned,
@@ -549,22 +549,6 @@ public class AutoRepairSupport {
 			total += item1.getAmount();					
 		}
 		return total;
-	}
-
-	// checks to see if the player has enough of a list of items
-	public boolean isEnough(String itemName) {
-		ArrayList<ItemStack> reqItems = AutoRepairPlugin.getRepairRecipies().get(itemName);
-		boolean enoughItemFlag = true;
-		for (int i =0; i < reqItems.size(); i++) {
-			ItemStack currItem = new ItemStack(reqItems.get(i).getTypeId(), reqItems.get(i).getAmount());
-
-			int neededAmount = reqItems.get(i).getAmount();
-			int currTotal = getTotalItems(currItem);
-			if (neededAmount > currTotal) {
-				enoughItemFlag = false;
-			}
-		}
-		return enoughItemFlag;
 	}
 
 	public boolean isEnoughItems (ArrayList<ItemStack> req, ArrayList<ItemStack> neededItems) {
