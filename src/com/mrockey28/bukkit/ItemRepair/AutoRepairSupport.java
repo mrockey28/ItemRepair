@@ -166,7 +166,7 @@ public class AutoRepairSupport {
 	}
 	
 	
-	public boolean isEnchanted(ItemStack tool)
+	public static boolean isEnchanted(ItemStack tool)
 	{
 		return !tool.getEnchantments().isEmpty();
 	}
@@ -632,5 +632,7 @@ public class AutoRepairSupport {
 	public void setPlayer(Player player) {
 		AutoRepairSupport.player = player;
 	}
+	
+	
 }
 

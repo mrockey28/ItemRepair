@@ -6,16 +6,14 @@ import java.util.Map;
 
 import org.bukkit.Material;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public class RepairRecipe implements ConfigurationSerializable{
 
 	public recipe normal;
 	public recipe enchanted;
-	public enum RecipeType {
-		NORMAL,
-		ENCHANTED
-	}
+
 	
 	public HashMap<String, Object> serialize() {
 		
@@ -37,119 +35,55 @@ public class RepairRecipe implements ConfigurationSerializable{
 		enchanted = new recipe();
 	}
 	
-	public RepairRecipe(HashMap<String, Object> serialInput) {
+	public RepairRecipe(Object input) {
+		@SuppressWarnings("unchecked")
+		HashMap<String, Object> serialInput = (HashMap<String, Object>) input;
 		
 		normal = new recipe(serialInput.get("normal"));
 		enchanted = new recipe(serialInput.get("enchanted"));
 		
 	}
 	
-	
-	public void setMaterial (Material passedMat, RecipeType type) {
-		if (type == RecipeType.NORMAL)
-		{
-			normal.setMaterial(passedMat);
-		}
-		else
-		{
-			enchanted.setMaterial(passedMat);
-		}
+	public recipe getNormalCost() {
+		return normal;
 	}
 	
-	public Material getMaterial (RecipeType type) {
-		if (type == RecipeType.NORMAL)
-		{
-			return normal.getMaterial();
-		}
-		else
-		{
-			return enchanted.getMaterial();
-		}
-	}
-	
-	public void addItemCost (ItemStack newItem, RecipeType type) {
-		if (type == RecipeType.NORMAL)
-		{
-			normal.addItemCost(newItem);
-		}
-		else
-		{
-			enchanted.addItemCost(newItem);
-		}
-		
-	}
-	
-	public ArrayList<ItemStack> getItemCost (RecipeType type) {
-		if (type == RecipeType.NORMAL)
-		{
-			return normal.getItemCost();
-		}
-		else
-		{
-			return enchanted.getItemCost();
-		}
-		
-	}
-	
-	public void setEconCost(double newCost, RecipeType type) {
-		if (type == RecipeType.NORMAL)
-		{
-			normal.setEconCost(newCost);
-		}
-		else
-		{
-			enchanted.setEconCost(newCost);
-		}	
-	}
-	
-	public double getEconCost(RecipeType type) {
-		if (type == RecipeType.NORMAL)
-		{
-			return normal.getEconCost();
-		}
-		else
-		{
-			return enchanted.getEconCost();
-		}	
-	}
-	
-	public void setCostType (String newCostType, RecipeType type) {
-		if (type == RecipeType.NORMAL)
-		{
-			normal.setCostType(newCostType);
-		}
-		else
-		{
-			enchanted.setCostType(newCostType);
-		}
-		
-	}
-	public String getCostType (RecipeType type) {
-		if (type == RecipeType.NORMAL)
-		{
-			return normal.getCostType();
-		}
-		else
-		{
-			return enchanted.getCostType();
-		}
-		
-	}
+	public recipe getEnchantedCost() {
+		return enchanted;
+	}	
 	
 	
-	private class recipe {
+	public class recipe implements Cloneable{
 		private String costType;
 		private String material;
 		private ArrayList<ItemStack> repairItems;
 		private double econCost;
+		private double econCostMin;
+		private int xpCost;
+		private int xpCostMin;
+		
 		
 		private recipe() {
 			costType = "";
 			material = "";
 			repairItems = new ArrayList<ItemStack>(0);
 			econCost = 0;
+			econCostMin = 0;
+			xpCost = 0;
+			xpCostMin = 0;
 		}
-		
+		public recipe clone()
+		{
+			recipe result = new recipe();
+			result.costType = costType;
+			result.material = material;
+			result.repairItems = (ArrayList<ItemStack>) repairItems.clone(); 
+			result.econCost = econCost;
+			result.econCostMin = econCostMin;
+			result.xpCost = xpCost;
+			result.xpCostMin = xpCostMin; 
+			return result;
+		}
 		private HashMap<String, Object> serialize() {
 			
 			HashMap<String, Object> serialOutput = new HashMap<String, Object>();
@@ -180,9 +114,21 @@ public class RepairRecipe implements ConfigurationSerializable{
 				econCost = (Double) serialInput.get("econ-cost");
 				serialInput.remove("econ-cost");
 			}
+			if (serialInput.containsKey("econ-cost-min")) {
+				econCostMin = (Double) serialInput.get("econ-cost-min");
+				serialInput.remove("econ-cost-min");
+			}
 			if (serialInput.containsKey("cost-type")) {
-				costType = (String) serialInput.get("econ-cost");
+				costType = (String) serialInput.get("cost-type");
 				serialInput.remove("cost-type");
+			}
+			if (serialInput.containsKey("xp-cost")) {
+				xpCost = (Integer) serialInput.get("xp-cost");
+				serialInput.remove("xp-cost");
+			}
+			if (serialInput.containsKey("xp-cost-min")) {
+				xpCostMin = (Integer) serialInput.get("xp-cost-min");
+				serialInput.remove("xp-cost-min");
 			}
 			while (!serialInput.isEmpty()) {
 				ItemStack item = new ItemStack(0);
@@ -195,14 +141,86 @@ public class RepairRecipe implements ConfigurationSerializable{
 			}
 		}
 		
-		private void setCostType (String newCostType) {
+		
+		
+		
+		public void adjustRepairCost(ItemStackRevised item)
+		{
+			if (AutoRepairPlugin.config.isXpCostOff())
+			{
+				xpCost = 0;
+			}
+			else if (AutoRepairPlugin.config.isXpCostAdjusted())
+			{
+		    	xpCost = (int)adjustCost ((double)xpCost, item);
+	    		if (xpCost < xpCostMin)
+	    		{
+	    			xpCost = xpCostMin;
+	    		}
+		    }
+			
+			if (AutoRepairPlugin.config.isEconCostOff())
+			{
+				econCost = 0;
+			}
+			else if (AutoRepairPlugin.config.isEconCostAdjusted())
+			{
+		    	econCost = adjustCost (econCost, item);
+	    		if (econCost < econCostMin)
+	    		{
+	    			econCost = econCostMin;
+	    		}
+		    }
+		    //repeat this pattern for item cost and econ cost.
+		}
+
+		private double adjustCost (double cost, ItemStackRevised object)
+		{
+		    float fraction = object.getItemStack().getDurability() / object.getMaxDurability();
+		    return cost * fraction;
+		}
+		
+		//This function HAS to assume that there will be no overflow conditions;
+		//that there has already been a check done to make sure the cost CAN be deducted. We just need to do it now.
+		public void ApplyCost (ItemStackRevised item, Player player)
+		{
+			//Deduct XP cost
+			player.setExp(player.getExp() - xpCost);
+			
+			//Deduct Econ cost
+			AutoRepairPlugin.econ.withdrawPlayer(player.getName(), econCost);
+		    
+		    //since we can't do player.item -= itemCost,
+		    //the loop below will have to suffice.
+		    for (ItemStack i : repairItems)
+		    {
+		    	
+		        int invenIndex = player.getInventory().first(i.getType());
+		        while (player.getInventory().getItem(invenIndex).getAmount() < i.getAmount())
+		        {
+		        	i.setAmount(i.getAmount() - player.getInventory().getItem(invenIndex).getAmount());
+		            player.getInventory().clear(invenIndex);
+		            invenIndex = player.getInventory().first(i.getType());
+		        }    
+		        player.getInventory().getItem(invenIndex).setAmount(player.getInventory().getItem(invenIndex).getAmount() - i.getAmount());
+		    }
+
+		    if (AutoRepairPlugin.config.removeEnchanmentsOnRepair())
+		    {
+		        item.deleteAllEnchantments();
+		    }
+
+		}
+		
+		
+		void setCostType (String newCostType) {
 			if (newCostType == "item" || newCostType == "econ" || newCostType == "both")
 			{
 				costType = newCostType;
 			}
 		}
 		
-		private String getCostType () {
+		public String getCostType () {
 			return costType;
 		}
 		
@@ -210,26 +228,54 @@ public class RepairRecipe implements ConfigurationSerializable{
 			material = passedMat.toString();
 		}
 		
-		private Material getMaterial ()
+		public Material getMaterial ()
 		{
 			return Material.getMaterial(material.toString());
 		}
 		
-		private void addItemCost (ItemStack newItem) {
+		void addItemCost (ItemStack newItem) {
 			repairItems.add(newItem);
 		}
 		
-		private ArrayList<ItemStack> getItemCost () {
+		public ArrayList<ItemStack> getItemCost () {
 			return repairItems;
 		}
 		
-		private void setEconCost(double newCost) {
+		void setEconCost(double newCost) {
 			econCost = newCost;
 		}
 		
-		private double getEconCost()
+		public double getEconCost()
 		{
 			return econCost;
+		}
+		
+		public boolean isXpCostMin()
+		{
+			if (xpCostMin > 0)
+			{
+				return true;
+			}
+			return false;
+		}
+		
+		public int getXpCostMin()
+		{
+			return xpCostMin;
+		}
+		
+		public boolean isXpCost()
+		{
+			if (xpCost > 0)
+			{
+				return true;
+			}
+			return false;
+		}
+		
+		public int getXpCost()
+		{
+			return xpCost;
 		}
 	}
 	

@@ -16,7 +16,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import net.milkbowl.vault.economy.Economy;
 
 import com.mrockey28.bukkit.ItemRepair.RepairRecipe;
-import com.mrockey28.bukkit.ItemRepair.RepairRecipe.RecipeType;
 
 /**
  * testing for Bukkit
@@ -29,7 +28,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 	private static HashMap<String, Integer> durabilityCosts;
 	private static HashMap<String, ArrayList<ItemStack>> repairRecipies;
 	private static HashMap<String, Integer> iConCosts;
-	private HashMap<String, String> settings;
+	private HashMap<String, Object> settings;
 	private static String useEcon = "false"; //are we using econ, not using econ, using econ and items, or letting the AutoRepair.properties file decide?
 	private static String allowEnchanted = "true";
 	private static boolean economyFound = false;
@@ -38,6 +37,8 @@ public class AutoRepairPlugin extends JavaPlugin {
 	static boolean issueRepairedNotificationWhenNoRepairCost = true;
 	public static boolean isPermissions = false;
 	
+	public static RepairRecipe recipe;
+	public static globalConfig config;
 	public static Economy econ = null;
 	public static String item_rounding = "flat";
 	public static String econ_fractioning = "off";
@@ -91,7 +92,6 @@ public class AutoRepairPlugin extends JavaPlugin {
 			saveConfig();
 		}
 		refreshConfig();
-		
 	}
 	 
 
@@ -304,9 +304,9 @@ public class AutoRepairPlugin extends JavaPlugin {
 		return allowed;
 	}
 
-	public HashMap<String, String> readConfig() {
+	public HashMap<String, Object> readConfig() {
 		String fileName = "plugins/AutoRepair/Config.properties";
-		HashMap<String, String> settings = new HashMap<String, String>();
+		HashMap<String, Object> settings = new HashMap<String, Object>();
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(fileName));
 			String line;
@@ -332,104 +332,74 @@ public class AutoRepairPlugin extends JavaPlugin {
 		refreshSettings();
 		refreshRecipes();
 	}
-	
 	public void refreshSettings() {
-		if (getConfig().contains("config.auto-repair")) {
-			if (getConfig().get("config.auto-repair").toString().equalsIgnoreCase("false")) {
-				setAutoRepair("false");
-			} else if (getConfig().get("config.auto-repair").toString().equalsIgnoreCase("false-nowarnings")) {
-				setAutoRepair("false-nowarnings");
-			}
-			//If somebody fucks up, the default is true
-			else {
-				setAutoRepair("true");
-			}
-		}
-		if (getConfig().contains("config.repair-costs")) {
-			issueRepairedNotificationWhenNoRepairCost = true;
-			if (getConfig().get("config.repair-costs").toString().equalsIgnoreCase("false")) {
-				setRepairCosts(false);
-			}
-			else if (getConfig().get("config.repair-costs").toString().equalsIgnoreCase("false-nomessages")) {
-				setRepairCosts(false);
-				issueRepairedNotificationWhenNoRepairCost = false;
-			}
-			//In the case where somebody tried to use econ, but no economy found, 
-			//let them know and then don't use repair costs.
-			else if (economyFound == false && !getConfig().get("config.economy").toString().equalsIgnoreCase("false")) {
-				log.info(String.format("[%s] Tried to use economy costs per config, but economy not linked, turning off repair costs.", getDescription().getName()));
-				setRepairCosts(false);
-			}
-			//If somebody fucks up, the default is true
-			else
-			{
-				setRepairCosts(true);
-			}
-		}
-		if (getConfig().contains("config.economy")) {
-			if (economyFound == false) {
-				setUseEcon("false");
-			} else if (getConfig().get("config.economy").toString().equalsIgnoreCase("true")) {
-				setUseEcon("true");
-			} else if (getConfig().get("config.economy").toString().equalsIgnoreCase("both")) {
-				setUseEcon("both");
-			} else if (getConfig().get("config.economy").toString().equalsIgnoreCase("config")) {
-				setUseEcon("config");
-			}
-			//If somebody fucks up, the default is false
-			else{
-				setUseEcon("false");
-			}
-		}
-		if (getConfig().contains("config.permissions")) {
-			if (getConfig().get("config.permissions").toString().equalsIgnoreCase("true")) {
-				AutoRepairPlugin.isPermissions = true;
-			}
-			//If somebody fucks up, the default is false
-			else
-			{
-				AutoRepairPlugin.isPermissions = false;
-			}
-		}
-		if (getConfig().contains("config.item_rounding")) {
-			if (getConfig().get("config.item_rounding").toString().equalsIgnoreCase("min")) {
-				item_rounding = "min";
-			} else if (getConfig().get("config.item_rounding").toString().equalsIgnoreCase("round")) {
-				item_rounding = "round";
-			}
-			//If somebody fucks up, the default is "flat"
-			else {
-				item_rounding = "flat";
-			} 
-		}
-		if (getConfig().contains("config.econ_fractioning")) {
-			if (getConfig().get("config.econ_fractioning").toString().equalsIgnoreCase("on")) {
-				econ_fractioning = "on";
-			} 
-			//If somebody fucks up, the default is "off"
-			else {
-				econ_fractioning = "off";
-			}	
-		}
-		if (getConfig().contains("config.allow_enchanted")) {
-			if (getConfig().get("config.allow_enchanted").toString().equalsIgnoreCase("false")) {
-				allowEnchanted = "false";
-			} else if (getConfig().get("config.allow_enchanted").toString().equalsIgnoreCase("permissions") && isPermissions == true) {
-				allowEnchanted = "permissions";
-			} else {
-				allowEnchanted = "true";
-			}
-		}
+		config = new globalConfig(getConfig().getConfigurationSection("config").getValues(false));
 	}
 	
 	public void refreshRecipes() {
-		getConfig().getConfigurationSection("recipes").getValues(arg0)
+		recipe = new RepairRecipe(getConfig().getConfigurationSection("recipes").getValues(true));
 	}
 	
 	public void convertOldConfig() {
 		try {
 			
 			setSettings(readConfig());
+			if (getSettings().containsKey("allow_enchanted"))
+			{
+				getSettings().put("allowRepairOfEnchantedItems", Boolean.parseBoolean((String) getSettings().get("allow_enchanted")));
+				getSettings().remove("allow_enchanted");
+			}
+			if (getSettings().containsKey("permissions"))
+			{
+				getSettings().put("usePermissions", Boolean.parseBoolean((String) getSettings().get("permissions")));
+				getSettings().remove("permissions");
+			}
+			if (getSettings().containsKey("auto-repair"))
+			{
+				getSettings().put("autoRepair", Boolean.parseBoolean((String) getSettings().get("auto-repair")));
+				getSettings().remove("auto-repair");
+			}
+			if (getSettings().containsKey("economy"))
+			{
+				if (getSettings().containsKey("repair-costs"))
+				{
+					if (getSettings().get("economy").toString().equalsIgnoreCase("false"))
+					{
+						getSettings().put("econCostType", "off");
+						getSettings().put("itemCostType", "off");
+					}
+					else
+					{
+						if (getSettings().get("economy").toString().equalsIgnoreCase("true") || getSettings().get("economy").toString().equalsIgnoreCase("both"))
+						{
+							if (getSettings().get("economy").toString().equalsIgnoreCase("true")) getSettings().put("itemCostType", "off");
+							if (getSettings().containsKey("econ_fractioning") && getSettings().get("econ_fractioning").toString().equalsIgnoreCase("on"))
+								getSettings().put("econCostType", "adjusted");
+							else
+								getSettings().put("econCostType", "on");
+						}
+						if (getSettings().get("economy").toString().equalsIgnoreCase("false") || getSettings().get("economy").toString().equalsIgnoreCase("both"))
+						{
+							if (getSettings().get("economy").toString().equalsIgnoreCase("false")) getSettings().put("econCostType", "off");
+							if (getSettings().containsKey("item_rounding") && (getSettings().get("item_rounding").toString().equalsIgnoreCase("min") || getSettings().get("item_rounding").toString().equalsIgnoreCase("round")))
+								getSettings().put("itemCostType", "adjusted");
+							else
+								getSettings().put("itemCostType", "on");
+						}
+						if (getSettings().get("economy").toString().equalsIgnoreCase("config"))
+						{
+							getSettings().put("econCostType", "on");
+							getSettings().put("itemCostType", "on");
+						}
+					}
+				}
+				
+
+				getSettings().remove("economy");
+				getSettings().remove("econ_fractioning");
+				getSettings().remove("item_rounding");
+				getSettings().remove("repair-costs");
+			}
 			getConfig().createSection("config", getSettings());
 			
 			
@@ -453,7 +423,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 						(line.charAt(0) == '#')) {
 					continue;
 				}
-				RepairRecipe recipe = new RepairRecipe();
+				recipe = new RepairRecipe();
 				int keyPosition = line. indexOf('=');
 				String[] reqs;
 				ArrayList<ItemStack> itemReqs = new ArrayList<ItemStack>();
@@ -464,8 +434,8 @@ public class AutoRepairPlugin extends JavaPlugin {
 					try {
 						int amount = Integer.parseInt(line.substring(line.lastIndexOf("=") +1, line.length()));
 						iConomy.put(item, amount);
-						recipe.setEconCost(amount, RecipeType.NORMAL);
-						recipe.setCostType("econ", RecipeType.NORMAL);
+						recipe.getNormalCost().setEconCost(amount);
+						recipe.getNormalCost().setCostType("econ");
 					} catch (Exception e) {
 					}
 				} else {
@@ -489,14 +459,14 @@ public class AutoRepairPlugin extends JavaPlugin {
 						reqs = allReqs[i].split(",");
 						ItemStack currItem = new ItemStack(Integer.parseInt(reqs[0]), Integer.parseInt(reqs[1]));
 						itemReqs.add(currItem);
-						recipe.addItemCost(currItem, RecipeType.NORMAL);
-						if (recipe.getCostType(RecipeType.NORMAL) == "econ")
+						recipe.getNormalCost().addItemCost(currItem);
+						if (recipe.getNormalCost().getCostType() == "econ")
 						{
-							recipe.setCostType("both", RecipeType.NORMAL);
+							recipe.getNormalCost().setCostType("both");
 						}
 						else
 						{
-							recipe.setCostType("item", RecipeType.NORMAL);
+							recipe.getNormalCost().setCostType("item");
 						}
 					}
 				}
@@ -547,11 +517,11 @@ public class AutoRepairPlugin extends JavaPlugin {
 		return repairRecipies;
 	}
 
-	public void setSettings(HashMap<String, String> settings) {
+	public void setSettings(HashMap<String, Object> settings) {
 		this.settings = settings;
 	}
 
-	public HashMap<String, String> getSettings() {
+	public HashMap<String, Object> getSettings() {
 		return settings;
 	}
 
