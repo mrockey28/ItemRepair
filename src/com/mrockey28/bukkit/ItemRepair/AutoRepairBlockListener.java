@@ -13,6 +13,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
 
@@ -34,6 +35,10 @@ public class AutoRepairBlockListener implements Listener {
 /////
 //EVENT HANDLERS
 /////
+	@EventHandler
+	public void onPlayerInteract(PlayerInteractEvent event) {
+		support.checkForAnvilRepair(event);
+	}
 	
 	@EventHandler
 	public void onBlockDamage(BlockDamageEvent event) {		

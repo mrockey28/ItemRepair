@@ -4,7 +4,12 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
+
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -28,6 +33,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 	private HashMap<String, String> settings;
 	private static String useEcon = "false"; //are we using econ, not using econ, using econ and items, or letting the AutoRepair.properties file decide?
 	private static String allowEnchanted = "true";
+	private static boolean allowAnvils = true;
 	private static boolean economyFound = false;
 	private static String autoRepair = "true";
 	private static boolean repairCosts;
@@ -48,7 +54,8 @@ public class AutoRepairPlugin extends JavaPlugin {
 		WARN,
 		MANUAL_REPAIR,
 		AUTO_REPAIR,
-		FULL_REPAIR
+		FULL_REPAIR,
+		SIGN_REPAIR,
 	}
 	
 
@@ -139,7 +146,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 			ItemStack tool;
 			int itemSlot = 0;
 			if (split.length == 0) {
-				if (isAllowed(player, "repair")) {
+				if (isAllowed(player, "repair") && isAllowed(player, "repcommands")) {
 					tool = player.getItemInHand();
 					repair.manualRepair(tool);
 				} else {
@@ -164,7 +171,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 							player.sendMessage("§cYou dont have permission to do the reload command.");
 						}
 					}else {
-						if (isAllowed(player, "repair")) {
+						if (isAllowed(player, "repair") && isAllowed(player, "repcommands")) {
 							itemSlot = Integer.parseInt(split[0]);
 							if (itemSlot >0 && itemSlot <=9) {
 								tool = inven.getItem(itemSlot -1);
@@ -235,6 +242,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 				if (!isAllowed(player, "warn")) return false;
 				else return true;
 			case MANUAL_REPAIR:
+			case SIGN_REPAIR:
 			case FULL_REPAIR:
 				if (!isAllowed(player, "repair"))
 				{
@@ -398,8 +406,17 @@ public class AutoRepairPlugin extends JavaPlugin {
 					allowEnchanted = "false";
 				} else if (getSettings().get("allow_enchanted").equals("permissions") && isPermissions == true) {
 					allowEnchanted = "permissions";
+				} else if (getSettings().get("allow_enchanted").equals("lose_enchantment")) {
+					allowEnchanted = "lose_enchantment";
 				} else {
 					allowEnchanted = "true";
+				}
+			}
+			if (getSettings().containsKey("allow_anvils")) {
+				if (getSettings().get("allow_anvils").equals("false")) {
+					allowAnvils = false;
+				} else {
+					allowAnvils = true;
 				}
 			}
 		} catch (Exception e){
@@ -563,5 +580,27 @@ public class AutoRepairPlugin extends JavaPlugin {
 	
 	public static HashMap<String, Integer> getDurabilityCosts() {
 		return durabilityCosts;
+	}
+	
+	public boolean anvilsAllowed() {
+		return allowAnvils;
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public ItemStack checkForRemoveEnchantment(ItemStack item)
+	{
+		if (allowEnchanted.equalsIgnoreCase("lose_enchantment"))
+		{
+			Set<?> set = item.getEnchantments().entrySet();
+			Iterator<?> i = set.iterator();
+			
+			while (i.hasNext())
+			{
+				Map.Entry me = (Map.Entry)i.next();
+				Enchantment ench = (Enchantment) me.getKey();
+				item.removeEnchantment(ench);
+			}
+		}
+		return item;
 	}
 }

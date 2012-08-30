@@ -24,6 +24,11 @@ public class Repair extends AutoRepairSupport{
 		doRepairOperation(tool, operationType.MANUAL_REPAIR);
 		return false;		
 	}
+	
+	public boolean anvilRepair(ItemStack tool) {
+		doRepairOperation(tool, operationType.SIGN_REPAIR);
+		return false;		
+	}
 
 	public boolean autoRepairTool(ItemStack tool) {
 		
