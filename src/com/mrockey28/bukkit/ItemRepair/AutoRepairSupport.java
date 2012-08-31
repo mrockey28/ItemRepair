@@ -7,7 +7,12 @@ import java.util.Map;
 import java.util.Set;
 
 import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
@@ -90,7 +95,7 @@ public class AutoRepairSupport {
 		
 		String itemName = Material.getMaterial(tool.getTypeId()).toString();
 		HashMap<String, ArrayList<ItemStack> > recipies = AutoRepairPlugin.getRepairRecipies();
-		HashMap<String, Integer> econCost = AutoRepairPlugin.getiConCosts();
+		HashMap<String, Double> econCost = AutoRepairPlugin.getiConCosts();
 		HashMap<String, Integer> durabilities = AutoRepairPlugin.getDurabilityCosts();
 		
 		if (!recipies.containsKey(itemName))
@@ -119,7 +124,7 @@ public class AutoRepairSupport {
 		}
 		else
 		{
-			cost.cost = (double)AutoRepairPlugin.getiConCosts().get(itemName);
+			cost.cost = econCost.get(itemName);
 		}
 		
 		//By this point, if we haven't set the costtype to something other than "config" or returned,
@@ -204,7 +209,7 @@ public class AutoRepairSupport {
 		else if (op == operationType.WARN) return;
 		
 		//Prevent manual repairs on fully repaired tools
-		if (op == operationType.MANUAL_REPAIR && tool.getDurability() == 0)
+		if ((op == operationType.MANUAL_REPAIR || op == operationType.SIGN_REPAIR) && tool.getDurability() == 0)
 		{
 			player.sendMessage("§3" + tool.getType().toString() + " is already fully repaired.");
 			return;
@@ -246,6 +251,7 @@ public class AutoRepairSupport {
 						}
 						break;
 					case AUTO_REPAIR:
+					case SIGN_REPAIR:
 					case MANUAL_REPAIR:
 						if (AutoRepairPlugin.issueRepairedNotificationWhenNoRepairCost == true) getPlayer().sendMessage("§3Repaired " + itemName);
 					case FULL_REPAIR:
@@ -269,6 +275,7 @@ public class AutoRepairSupport {
 						break;
 					case AUTO_REPAIR:
 					case MANUAL_REPAIR:
+					case SIGN_REPAIR:
 					case FULL_REPAIR:
 						if (cost.cost <= balance) {
 							//balance = iConomy.db.get_balance(player.getName());
@@ -279,7 +286,7 @@ public class AutoRepairSupport {
 							//inven.setItem(slot, repItem(tool));
 							repItem(tool);
 						} else if (op != operationType.FULL_REPAIR){
-							if (op == operationType.MANUAL_REPAIR || !getLastWarning()) {
+							if (op == operationType.MANUAL_REPAIR || op == operationType.SIGN_REPAIR || !getLastWarning()) {
 								if (AutoRepairPlugin.isAllowed(player, "warn")) {
 									iConWarn(itemName, cost.cost);				
 								}
@@ -311,6 +318,7 @@ public class AutoRepairSupport {
 						break;
 					case AUTO_REPAIR:
 					case MANUAL_REPAIR:
+					case SIGN_REPAIR:
 					case FULL_REPAIR:
 						if (cost.cost <= balance && isEnoughItems(req, neededItems)) {
 							//balance = iConomy.db.get_balance(player.getName());
@@ -323,7 +331,7 @@ public class AutoRepairSupport {
 							}
 							
 						} else if (op != operationType.FULL_REPAIR){
-							if (op == operationType.MANUAL_REPAIR || !getLastWarning()) {
+							if (op == operationType.MANUAL_REPAIR || op == operationType.SIGN_REPAIR || !getLastWarning()) {
 								if (AutoRepairPlugin.isAllowed(player, "warn")) {
 									if (cost.cost > balance && !isEnoughItems(req, neededItems)) bothWarn(itemName, cost.cost, neededItems);
 									else if (cost.cost > balance) iConWarn(itemName, cost.cost);
@@ -358,6 +366,7 @@ public class AutoRepairSupport {
 						break;
 					case AUTO_REPAIR:
 					case MANUAL_REPAIR:
+					case SIGN_REPAIR:
 					case FULL_REPAIR:
 						if (isEnoughItems(req, neededItems)) {
 							deduct(req);
@@ -366,7 +375,7 @@ public class AutoRepairSupport {
 								player.sendMessage("§3Using " + printFormatReqs(req) + " to repair " + itemName);
 							}
 						} else if (op != operationType.FULL_REPAIR){
-							if (op == operationType.MANUAL_REPAIR || !getLastWarning()) {
+							if (op == operationType.MANUAL_REPAIR || op == operationType.SIGN_REPAIR || !getLastWarning()) {
 								if (AutoRepairPlugin.isAllowed(player, "warn")) {
 									justItemsWarn(itemName, neededItems);					
 								}
@@ -478,6 +487,7 @@ public class AutoRepairSupport {
 
 	public ItemStack repItem(ItemStack item) {
 		item.setDurability((short) 0);
+		plugin.checkForRemoveEnchantment(item);
 		return item;
 	}
 
@@ -551,22 +561,6 @@ public class AutoRepairSupport {
 		return total;
 	}
 
-	// checks to see if the player has enough of a list of items
-	public boolean isEnough(String itemName) {
-		ArrayList<ItemStack> reqItems = AutoRepairPlugin.getRepairRecipies().get(itemName);
-		boolean enoughItemFlag = true;
-		for (int i =0; i < reqItems.size(); i++) {
-			ItemStack currItem = new ItemStack(reqItems.get(i).getTypeId(), reqItems.get(i).getAmount());
-
-			int neededAmount = reqItems.get(i).getAmount();
-			int currTotal = getTotalItems(currItem);
-			if (neededAmount > currTotal) {
-				enoughItemFlag = false;
-			}
-		}
-		return enoughItemFlag;
-	}
-
 	public boolean isEnoughItems (ArrayList<ItemStack> req, ArrayList<ItemStack> neededItems) {
 		boolean enough = true;
 		for (int i =0; i<req.size(); i++) {
@@ -604,6 +598,43 @@ public class AutoRepairSupport {
 			string.append(items.get(i).getAmount() + " " + items.get(i).getType() + " ");
 		}
 		return string.toString();
+	}
+	
+	public void checkForAnvilRepair(PlayerInteractEvent event)
+	{
+		if (plugin.anvilsAllowed() == false)
+		{
+			return;
+		}
+		
+		if (event.getAction() == Action.RIGHT_CLICK_BLOCK)
+		{
+			Block block = event.getClickedBlock();
+			if (block.getType() == Material.IRON_BLOCK)
+			{
+				World world = block.getWorld();
+				ArrayList<Block> maybeSign = new ArrayList<Block> (0);
+				maybeSign.add(world.getBlockAt(block.getX() + 1, block.getY(), block.getZ()));
+				maybeSign.add(world.getBlockAt(block.getX() - 1, block.getY(), block.getZ()));
+				maybeSign.add(world.getBlockAt(block.getX(), block.getY(), block.getZ() + 1));
+				maybeSign.add(world.getBlockAt(block.getX(), block.getY(), block.getZ() - 1));
+				maybeSign.add(world.getBlockAt(block.getX(), block.getY() + 1, block.getZ()));
+				maybeSign.add(world.getBlockAt(block.getX(), block.getY() - 1, block.getZ()));
+				
+				for (Block mSign : maybeSign) 
+				{
+					if (mSign.getType() == Material.SIGN || mSign.getType() == Material.SIGN_POST)
+					{
+						if (((Sign)mSign.getState()).getLine(0).equalsIgnoreCase("Anvil"))
+						{
+							setPlayer(event.getPlayer());
+							plugin.repair.anvilRepair(event.getPlayer().getItemInHand());
+							return;
+						}
+					}
+				}
+			}
+		}
 	}
 
 	public boolean getWarning() {

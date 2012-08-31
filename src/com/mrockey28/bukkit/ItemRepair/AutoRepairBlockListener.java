@@ -13,6 +13,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
 
@@ -34,6 +35,10 @@ public class AutoRepairBlockListener implements Listener {
 /////
 //EVENT HANDLERS
 /////
+	@EventHandler
+	public void onPlayerInteract(PlayerInteractEvent event) {
+		support.checkForAnvilRepair(event);
+	}
 	
 	@EventHandler
 	public void onBlockDamage(BlockDamageEvent event) {		
@@ -161,6 +166,7 @@ public class AutoRepairBlockListener implements Listener {
 		this.support.setPlayer(player);
 
 		ItemStack[] armorlist = player.getInventory().getArmorContents();
+		HashMap<String, Integer> durabilities = AutoRepairPlugin.getDurabilityCosts();
 		
 		for (ItemStack piece : armorlist) {
 			if (piece.getType() == Material.AIR) {
@@ -174,7 +180,7 @@ public class AutoRepairBlockListener implements Listener {
 				support.setWarning(false);
 				support.setLastWarning(false);
 			}
-			HashMap<String, Integer> durabilities = AutoRepairPlugin.getDurabilityCosts();
+			
 			String itemName = Material.getMaterial(piece.getTypeId()).toString();
 			
 			int durability = 0;

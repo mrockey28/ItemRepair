@@ -5,7 +5,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
+
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.inventory.ItemStack;
@@ -27,10 +32,11 @@ public class AutoRepairPlugin extends JavaPlugin {
 	private final AutoRepairBlockListener blockListener = new AutoRepairBlockListener(this);
 	private static HashMap<String, Integer> durabilityCosts;
 	private static HashMap<String, ArrayList<ItemStack>> repairRecipies;
-	private static HashMap<String, Integer> iConCosts;
 	private HashMap<String, Object> settings;
+	private static HashMap<String, Double> iConCosts;
 	private static String useEcon = "false"; //are we using econ, not using econ, using econ and items, or letting the AutoRepair.properties file decide?
 	private static String allowEnchanted = "true";
+	private static boolean allowAnvils = true;
 	private static boolean economyFound = false;
 	private static String autoRepair = "true";
 	private static boolean repairCosts;
@@ -51,7 +57,8 @@ public class AutoRepairPlugin extends JavaPlugin {
 		WARN,
 		MANUAL_REPAIR,
 		AUTO_REPAIR,
-		FULL_REPAIR
+		FULL_REPAIR,
+		SIGN_REPAIR,
 	}
 	
 	static {
@@ -161,7 +168,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 			ItemStack tool;
 			int itemSlot = 0;
 			if (split.length == 0) {
-				if (isAllowed(player, "repair")) {
+				if (isAllowed(player, "repair") && isAllowed(player, "repcommands")) {
 					tool = player.getItemInHand();
 					repair.manualRepair(tool);
 				} else {
@@ -186,7 +193,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 							player.sendMessage("§cYou dont have permission to do the reload command.");
 						}
 					}else {
-						if (isAllowed(player, "repair")) {
+						if (isAllowed(player, "repair") && isAllowed(player, "repcommands")) {
 							itemSlot = Integer.parseInt(split[0]);
 							if (itemSlot >0 && itemSlot <=9) {
 								tool = inven.getItem(itemSlot -1);
@@ -257,6 +264,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 				if (!isAllowed(player, "warn")) return false;
 				else return true;
 			case MANUAL_REPAIR:
+			case SIGN_REPAIR:
 			case FULL_REPAIR:
 				if (!isAllowed(player, "repair"))
 				{
@@ -324,6 +332,11 @@ public class AutoRepairPlugin extends JavaPlugin {
 			}			
 		}catch (Exception e) {
 			log.info("Error reading AutoRepair config");
+			//If we do fail to read the config files, this means that autorepair will fail without notification,
+			//unless we do something about it. 
+			//Graceful failure dictates that we do something about it. Therefore, we will turn auto-repair off
+			//until the config is able to be read again.
+			setAutoRepair("false");
 		}		
 		return settings;
 
@@ -407,12 +420,15 @@ public class AutoRepairPlugin extends JavaPlugin {
 		} catch (Exception e){
 			log.info("Error reading AutoRepair config file");
 		}
+		
+		//read in autorepair.properties file
+		readProperties();
 	}
 
 	public void convertOldRepairCosts() {
 		try {
 			HashMap<String, ArrayList<ItemStack> > map = new HashMap<String, ArrayList<ItemStack> >();
-			HashMap<String, Integer> iConomy = new HashMap<String, Integer>();
+			HashMap<String, Double> iConomy = new HashMap<String, Double>();
 			HashMap<String, Integer> durab = new HashMap<String, Integer>();
 			String fileName = "plugins/AutoRepair/RepairCosts.properties";
 			BufferedReader reader = new BufferedReader(new FileReader(fileName));
@@ -432,7 +448,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 				if (line.indexOf(' ') != -1) {
 					recipiesString = line.substring(keyPosition+1, line.indexOf(' '));
 					try {
-						int amount = Integer.parseInt(line.substring(line.lastIndexOf("=") +1, line.length()));
+						double amount = Double.parseDouble(line.substring(line.lastIndexOf("=") +1, line.length()));
 						iConomy.put(item, amount);
 						recipe.getNormalCost().setEconCost(amount);
 						recipe.getNormalCost().setCostType("econ");
@@ -487,6 +503,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 				}
 				getConfig().createSection("recipes."+item, recipe.serialize());
 			}
+			
 			saveConfig();
 			log.info("finished loading config");
 			reader.close();
@@ -498,7 +515,6 @@ public class AutoRepairPlugin extends JavaPlugin {
 		{
 			log.info("Error reading AutoRepair recipe file");
 		}
-	
 	}
 
 	public void setUseEcon(String b) {
@@ -555,11 +571,11 @@ public class AutoRepairPlugin extends JavaPlugin {
 		return repairCosts;
 	}
 
-	public static void setiConCosts(HashMap<String, Integer> iConomy) {
+	public static void setiConCosts(HashMap<String, Double> iConomy) {
 		AutoRepairPlugin.iConCosts = iConomy;
 	}
 
-	public static HashMap<String, Integer> getiConCosts() {
+	public static HashMap<String, Double> getiConCosts() {
 		return iConCosts;
 	}
 	
@@ -569,5 +585,27 @@ public class AutoRepairPlugin extends JavaPlugin {
 	
 	public static HashMap<String, Integer> getDurabilityCosts() {
 		return durabilityCosts;
+	}
+	
+	public boolean anvilsAllowed() {
+		return allowAnvils;
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public ItemStack checkForRemoveEnchantment(ItemStack item)
+	{
+		if (allowEnchanted.equalsIgnoreCase("lose_enchantment"))
+		{
+			Set<?> set = item.getEnchantments().entrySet();
+			Iterator<?> i = set.iterator();
+			
+			while (i.hasNext())
+			{
+				Map.Entry me = (Map.Entry)i.next();
+				Enchantment ench = (Enchantment) me.getKey();
+				item.removeEnchantment(ench);
+			}
+		}
+		return item;
 	}
 }
