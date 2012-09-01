@@ -7,12 +7,13 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 public class globalConfig {
 
-	boolean usePermissions;
-	boolean automaticRepair;
-	String repairOfEnchantedItems;
-	String econCostType;
-	String itemCostType;
-	String xpCostType;
+	public boolean usePermissions;
+	public boolean automaticRepair;
+	public boolean allowAnvilUse;
+	private String repairOfEnchantedItems;
+	private String econCostType;
+	private String itemCostType;
+	private String xpCostType;
 	
 	private static String configSectionName = "config";
 	
@@ -30,11 +31,11 @@ public class globalConfig {
 		}
 		if (econCostType != "")
 		{
-			serialOutput.put("econCostType", econCostType);
+			serialOutput.put("econCost", econCostType);
 		}
 		if (itemCostType != "")
 		{
-			serialOutput.put("itemCostType", itemCostType);
+			serialOutput.put("itemCost", itemCostType);
 		}
 		if (xpCostType != "")
 		{
@@ -74,11 +75,11 @@ public class globalConfig {
 		if (keys.contains("automaticRepair")) {
 			automaticRepair = config.getBoolean(pathPrefix + "automaticRepair");
 		}
-		if (keys.contains("econCostType")) {
-			econCostType = config.getString(pathPrefix + "econCostType");
+		if (keys.contains("econCost")) {
+			econCostType = config.getString(pathPrefix + "econCost");
 		}
-		if (keys.contains("itemCostType")) {
-			itemCostType = config.getString(pathPrefix + "itemCostType");
+		if (keys.contains("itemCost")) {
+			itemCostType = config.getString(pathPrefix + "itemCost");
 		}
 		if (keys.contains("xpCostType")) {
 			xpCostType = config.getString(pathPrefix + "xpCostType");
@@ -110,10 +111,6 @@ public class globalConfig {
 		return (econCostType.equalsIgnoreCase("adjusted"));
 	}
 	
-	public boolean isEconCostMin () {
-		return (econCostType.equalsIgnoreCase("minimum"));
-	}
-	
 	public boolean isEconCostFull () {
 		return (econCostType.equalsIgnoreCase("full"));
 	}
@@ -130,10 +127,6 @@ public class globalConfig {
 		return (itemCostType.equalsIgnoreCase("adjusted"));
 	}
 	
-	public boolean isItemCostMin () {
-		return (itemCostType.equalsIgnoreCase("minimum"));
-	}
-	
 	public boolean isItemCostFull () {
 		return (itemCostType.equalsIgnoreCase("full"));
 	}
@@ -144,7 +137,7 @@ public class globalConfig {
 	
 	public boolean removeEnchantmentsOnRepair()
 	{
-		return (repairOfEnchantedItems.equalsIgnoreCase("loseEnchantment"));
+		return (repairOfEnchantedItems.equalsIgnoreCase("lose_enchantment"));
 	}
 	
 	public boolean allowRepairOfEnchantedItems() 
@@ -156,15 +149,4 @@ public class globalConfig {
 	{
 		return (repairOfEnchantedItems.equalsIgnoreCase("off"));
 	}
-	
-	public boolean usePermissions() 
-	{
-		return usePermissions;
-	}
-	
-	public boolean automaticRepair()
-	{
-		return automaticRepair;
-	}
-
 }

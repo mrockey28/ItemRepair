@@ -91,10 +91,9 @@ public class AutoRepairPlugin extends JavaPlugin {
 			if (f.exists()) {
 				convertOldConfig();	
 			}
-			
-			getConfig().options().copyDefaults(true);
-			saveConfig();
 		}
+		getConfig().options().copyDefaults(true);
+		saveConfig();
 		refreshConfig();
 	}
 	 
@@ -364,8 +363,13 @@ public class AutoRepairPlugin extends JavaPlugin {
 			setSettings(readConfig());
 			if (getSettings().containsKey("allow_enchanted"))
 			{
-				getSettings().put("allowRepairOfEnchantedItems", Boolean.parseBoolean((String) getSettings().get("allow_enchanted")));
+				getSettings().put("allowRepairOfEnchantedItems", (String)getSettings().get("allow_enchanted"));
 				getSettings().remove("allow_enchanted");
+			}
+			if (getSettings().containsKey("allow_anvils"))
+			{
+				getSettings().put("allowAnvilUse", Boolean.parseBoolean((String) getSettings().get("allow_anvils")));
+				getSettings().remove("allow_anvils");
 			}
 			if (getSettings().containsKey("permissions"))
 			{
@@ -383,35 +387,34 @@ public class AutoRepairPlugin extends JavaPlugin {
 				{
 					if (getSettings().get("repair-costs").toString().equalsIgnoreCase("false"))
 					{
-						getSettings().put("econCostType", "off");
-						getSettings().put("itemCostType", "off");
+						getSettings().put("econCost", "off");
+						getSettings().put("itemCost", "off");
 					}
 					else
 					{
 						if (getSettings().get("economy").toString().equalsIgnoreCase("true") || getSettings().get("economy").toString().equalsIgnoreCase("both"))
 						{
-							if (getSettings().get("economy").toString().equalsIgnoreCase("true")) getSettings().put("itemCostType", "off");
+							if (getSettings().get("economy").toString().equalsIgnoreCase("true")) getSettings().put("itemCost", "off");
 							if (getSettings().containsKey("econ_fractioning") && getSettings().get("econ_fractioning").toString().equalsIgnoreCase("on"))
-								getSettings().put("econCostType", "adjusted");
+								getSettings().put("econCost", "adjusted");
 							else
-								getSettings().put("econCostType", "on");
+								getSettings().put("econCost", "full");
 						}
 						if (getSettings().get("economy").toString().equalsIgnoreCase("false") || getSettings().get("economy").toString().equalsIgnoreCase("both"))
 						{
-							if (getSettings().get("economy").toString().equalsIgnoreCase("false")) getSettings().put("econCostType", "off");
+							if (getSettings().get("economy").toString().equalsIgnoreCase("false")) getSettings().put("econCost", "off");
 							if (getSettings().containsKey("item_rounding") && (getSettings().get("item_rounding").toString().equalsIgnoreCase("min") || getSettings().get("item_rounding").toString().equalsIgnoreCase("round")))
-								getSettings().put("itemCostType", "adjusted");
+								getSettings().put("itemCost", "adjusted");
 							else
-								getSettings().put("itemCostType", "on");
+								getSettings().put("itemCost", "full");
 						}
 						if (getSettings().get("economy").toString().equalsIgnoreCase("config"))
 						{
-							getSettings().put("econCostType", "on");
-							getSettings().put("itemCostType", "on");
+							getSettings().put("econCost", "full");
+							getSettings().put("itemCost", "full");
 						}
 					}
 				}
-				
 
 				getSettings().remove("economy");
 				getSettings().remove("econ_fractioning");
