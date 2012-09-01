@@ -21,8 +21,8 @@ public class Repair extends AutoRepairSupport{
 	}
 	
 	public boolean manualRepair(ItemStack tool) {
-		ItemStackRevised toolToBeRepaired = new ItemStackRevised(item, 60, AutoRepairPlugin.recipe.normal., );
-		//doRepairOperation(tool, operationType.MANUAL_REPAIR);
+		//ItemStackPlus toolToBeRepaired = new ItemStackPlus(tool);
+		doRepairOperation(tool, operationType.MANUAL_REPAIR);
 		return false;		
 	}
 	

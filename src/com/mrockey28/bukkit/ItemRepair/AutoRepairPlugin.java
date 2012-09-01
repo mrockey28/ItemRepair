@@ -5,12 +5,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
 import java.util.logging.Logger;
 
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.inventory.ItemStack;
@@ -44,6 +40,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 	public static boolean isPermissions = false;
 	
 	public static RepairRecipe recipe;
+	public static HashMap<String, RepairRecipe> recipes = new HashMap<String, RepairRecipe>(0);
 	public static globalConfig config;
 	public static Economy econ = null;
 	public static String item_rounding = "flat";
@@ -346,11 +343,19 @@ public class AutoRepairPlugin extends JavaPlugin {
 		refreshRecipes();
 	}
 	public void refreshSettings() {
-		config = new globalConfig(getConfig().getConfigurationSection("config").getValues(false));
+		config = new globalConfig(getConfig());
+		if (config.isEconCostOn() && !economyFound)
+		{
+			config.turnEconCostOff();
+		}
 	}
 	
 	public void refreshRecipes() {
-		recipe = new RepairRecipe(getConfig().getConfigurationSection("recipes").getValues(true));
+
+		for(String key : getConfig().getConfigurationSection("recipes").getKeys(false)){			
+			RepairRecipe newRecipe = new RepairRecipe(getConfig(), key);
+			recipes.put(key, newRecipe);
+		}	
 	}
 	
 	public void convertOldConfig() {
@@ -369,14 +374,14 @@ public class AutoRepairPlugin extends JavaPlugin {
 			}
 			if (getSettings().containsKey("auto-repair"))
 			{
-				getSettings().put("autoRepair", Boolean.parseBoolean((String) getSettings().get("auto-repair")));
+				getSettings().put("automaticRepair", Boolean.parseBoolean((String) getSettings().get("auto-repair")));
 				getSettings().remove("auto-repair");
 			}
 			if (getSettings().containsKey("economy"))
 			{
 				if (getSettings().containsKey("repair-costs"))
 				{
-					if (getSettings().get("economy").toString().equalsIgnoreCase("false"))
+					if (getSettings().get("repair-costs").toString().equalsIgnoreCase("false"))
 					{
 						getSettings().put("econCostType", "off");
 						getSettings().put("itemCostType", "off");
@@ -416,13 +421,9 @@ public class AutoRepairPlugin extends JavaPlugin {
 			getConfig().createSection("config", getSettings());
 			
 			
-			//read in autorepair.properties file
 		} catch (Exception e){
 			log.info("Error reading AutoRepair config file");
 		}
-		
-		//read in autorepair.properties file
-		readProperties();
 	}
 
 	public void convertOldRepairCosts() {
@@ -591,20 +592,14 @@ public class AutoRepairPlugin extends JavaPlugin {
 		return allowAnvils;
 	}
 	
-	@SuppressWarnings("rawtypes")
 	public ItemStack checkForRemoveEnchantment(ItemStack item)
 	{
 		if (allowEnchanted.equalsIgnoreCase("lose_enchantment"))
 		{
-			Set<?> set = item.getEnchantments().entrySet();
-			Iterator<?> i = set.iterator();
-			
-			while (i.hasNext())
-			{
-				Map.Entry me = (Map.Entry)i.next();
-				Enchantment ench = (Enchantment) me.getKey();
-				item.removeEnchantment(ench);
-			}
+			//note that we can put 0 here because ItemStackRevised just becomes a convenient way to
+			//wrap the "delete enchantment" function
+			ItemStackPlus itemExtended = new ItemStackPlus(item);
+			itemExtended.deleteAllEnchantments();
 		}
 		return item;
 	}

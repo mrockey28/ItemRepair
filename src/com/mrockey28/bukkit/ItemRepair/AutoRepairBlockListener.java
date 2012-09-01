@@ -145,11 +145,11 @@ public class AutoRepairBlockListener implements Listener {
 			repair.autoRepairTool(toolHand);
 		}
 		//If the item is not enchanted, warn at some level
-		else if (!support.isEnchanted(toolHand) && (dmg > (durability - 10))) {
+		else if (!AutoRepairSupport.isEnchanted(toolHand) && (dmg > (durability - 10))) {
 			support.repairWarn(toolHand);
 		}
 		//If the item IS enchanted, warn at a different level
-		else if (support.isEnchanted(toolHand) && 
+		else if (AutoRepairSupport.isEnchanted(toolHand) && 
 				((dmg > (durability - 30)) && (dmg > 60) ||
 				(dmg > (durability - 15)))) {
 			support.repairWarn(toolHand);

@@ -2,9 +2,10 @@ package com.mrockey28.bukkit.ItemRepair;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.logging.Logger;
 
 import org.bukkit.Material;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -13,7 +14,9 @@ public class RepairRecipe implements ConfigurationSerializable{
 
 	public recipe normal;
 	public recipe enchanted;
-
+	
+	private static String configSectionName = "recipes";
+	public static final Logger log = Logger.getLogger("Minecraft");
 	
 	public HashMap<String, Object> serialize() {
 		
@@ -35,13 +38,12 @@ public class RepairRecipe implements ConfigurationSerializable{
 		enchanted = new recipe();
 	}
 	
-	public RepairRecipe(Object input) {
-		@SuppressWarnings("unchecked")
-		HashMap<String, Object> serialInput = (HashMap<String, Object>) input;
+	public RepairRecipe(FileConfiguration config, String itemName) {
 		
-		normal = new recipe(serialInput.get("normal"));
-		enchanted = new recipe(serialInput.get("enchanted"));
+		this();
 		
+		normal = new recipe(config, itemName, "normal");
+		enchanted = new recipe(config, itemName, "enchanted");
 	}
 	
 	public recipe getNormalCost() {
@@ -55,23 +57,29 @@ public class RepairRecipe implements ConfigurationSerializable{
 	
 	public class recipe implements Cloneable{
 		private String costType;
-		private String material;
+		private Material material;
 		private ArrayList<ItemStack> repairItems;
 		private double econCost;
 		private double econCostMin;
 		private int xpCost;
 		private int xpCostMin;
+		public boolean valid;
+		
+		
 		
 		
 		private recipe() {
 			costType = "";
-			material = "";
+			material = Material.AIR;
 			repairItems = new ArrayList<ItemStack>(0);
 			econCost = 0;
 			econCostMin = 0;
 			xpCost = 0;
 			xpCostMin = 0;
+			valid = false;
 		}
+		
+		@SuppressWarnings("unchecked")
 		public recipe clone()
 		{
 			recipe result = new recipe();
@@ -104,47 +112,59 @@ public class RepairRecipe implements ConfigurationSerializable{
 			return serialOutput;
 		}
 		
-		private recipe(Object input) {
-			@SuppressWarnings("unchecked")
-			HashMap<String, Object> serialInput = (HashMap<String, Object>) input;
+		private recipe(FileConfiguration config, String itemName, String enchantStatus) {
 			
-			//We remove the known possible other fields besides the recipe ingredients from the map
-			//so that we can run through all the recipe ingredients at the end
-			if (serialInput.containsKey("econ-cost")) {
-				econCost = (Double) serialInput.get("econ-cost");
-				serialInput.remove("econ-cost");
+			//Initialize, in case of empty field
+			this();
+			
+			String pathPrefix = configSectionName + "." + itemName + "." + enchantStatus + ".";
+			
+			//If we don't check to make sure this configuration section is here,
+			//it'll cause a Null pointer error when we come across items that don't have "enchanted" specifications
+			if (!config.isConfigurationSection(pathPrefix))
+			{
+				return;
 			}
-			if (serialInput.containsKey("econ-cost-min")) {
-				econCostMin = (Double) serialInput.get("econ-cost-min");
-				serialInput.remove("econ-cost-min");
+			
+			material = Material.getMaterial(itemName);
+			//If we got past the check for the actual configuration section, we can confirm that there will be a cost
+			valid = true;
+			
+			ArrayList <String> keys = new ArrayList <String> (config.getConfigurationSection(pathPrefix).getKeys(false));
+			
+			//We step through, find the individual unique fields, and then remove them as we assign them,
+			//because at the end we need to be able to step through the list of items that make up the rest of
+			//the repair costs
+			if (keys.contains("econ-cost")) {
+				econCost = config.getDouble(pathPrefix + "econ-cost");
+				keys.remove("econ-cost");
 			}
-			if (serialInput.containsKey("cost-type")) {
-				costType = (String) serialInput.get("cost-type");
-				serialInput.remove("cost-type");
+			if (keys.contains("econ-cost-min")) {
+				econCostMin = config.getDouble(pathPrefix + "econ-cost-min");
+				keys.remove("econ-cost-min");
 			}
-			if (serialInput.containsKey("xp-cost")) {
-				xpCost = (Integer) serialInput.get("xp-cost");
-				serialInput.remove("xp-cost");
+			if (keys.contains("cost-type")) {
+				costType = config.getString(pathPrefix + "cost-type");
+				keys.remove("cost-type");
 			}
-			if (serialInput.containsKey("xp-cost-min")) {
-				xpCostMin = (Integer) serialInput.get("xp-cost-min");
-				serialInput.remove("xp-cost-min");
+			if (keys.contains("xp-cost")) {
+				xpCost = config.getInt(pathPrefix + "xp-cost");
+				keys.remove("xp-cost");
 			}
-			while (!serialInput.isEmpty()) {
+			if (keys.contains("xp-cost-min")) {
+				xpCostMin = config.getInt(pathPrefix + "xp-cost-min");
+				keys.remove("xp-cost-min");
+			}
+			for (String i : keys) {
 				ItemStack item = new ItemStack(0);
-				Map.Entry<String, Object> entry = serialInput.entrySet().iterator().next();
-				item.setType(Material.getMaterial(entry.getKey()));
-				item.setAmount((Integer) entry.getValue());
+				item.setType(Material.getMaterial(i));
+				item.setAmount(config.getInt(pathPrefix + "." + i));
 				repairItems.add(item.clone());
-				material = entry.getKey().toString();
-				serialInput.remove(entry.getKey());
 			}
 		}
 		
 		
-		
-		
-		public void adjustRepairCost(ItemStackRevised item)
+		public void adjustRepairCost(ItemStackPlus item)
 		{
 			if (AutoRepairPlugin.config.isXpCostOff())
 			{
@@ -174,15 +194,15 @@ public class RepairRecipe implements ConfigurationSerializable{
 		    //repeat this pattern for item cost and econ cost.
 		}
 
-		private double adjustCost (double cost, ItemStackRevised object)
+		private double adjustCost (double cost, ItemStackPlus item)
 		{
-		    float fraction = object.getItemStack().getDurability() / object.getMaxDurability();
+		    float fraction = item.getDurability() / item.getMaxDurability();
 		    return cost * fraction;
 		}
 		
 		//This function HAS to assume that there will be no overflow conditions;
 		//that there has already been a check done to make sure the cost CAN be deducted. We just need to do it now.
-		public void ApplyCost (ItemStackRevised item, Player player)
+		public void ApplyCost (ItemStackPlus item, Player player)
 		{
 			//Deduct XP cost
 			player.setExp(player.getExp() - xpCost);
@@ -205,7 +225,7 @@ public class RepairRecipe implements ConfigurationSerializable{
 		        player.getInventory().getItem(invenIndex).setAmount(player.getInventory().getItem(invenIndex).getAmount() - i.getAmount());
 		    }
 
-		    if (AutoRepairPlugin.config.removeEnchanmentsOnRepair())
+		    if (AutoRepairPlugin.config.removeEnchantmentsOnRepair())
 		    {
 		        item.deleteAllEnchantments();
 		    }
@@ -224,14 +244,6 @@ public class RepairRecipe implements ConfigurationSerializable{
 			return costType;
 		}
 		
-		private void setMaterial (Material passedMat) {
-			material = passedMat.toString();
-		}
-		
-		public Material getMaterial ()
-		{
-			return Material.getMaterial(material.toString());
-		}
 		
 		void addItemCost (ItemStack newItem) {
 			repairItems.add(newItem);
