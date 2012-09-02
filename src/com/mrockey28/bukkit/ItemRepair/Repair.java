@@ -2,7 +2,6 @@ package com.mrockey28.bukkit.ItemRepair;
 
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.logging.Logger;
 
 import org.bukkit.Material;
@@ -20,18 +19,18 @@ public class Repair extends AutoRepairSupport{
 		super(instance, getPlayer());
 	}
 	
-	public boolean manualRepair(ItemStack tool) {
+	public boolean manualRepair(ItemStackPlus tool) {
 		//ItemStackPlus toolToBeRepaired = new ItemStackPlus(tool);
 		doRepairOperation(tool, operationType.MANUAL_REPAIR);
 		return false;		
 	}
 	
-	public boolean anvilRepair(ItemStack tool) {
+	public boolean anvilRepair(ItemStackPlus tool) {
 		doRepairOperation(tool, operationType.SIGN_REPAIR);
 		return false;		
 	}
 
-	public boolean autoRepairTool(ItemStack tool) {
+	public boolean autoRepairTool(ItemStackPlus tool) {
 		
 		doRepairOperation(tool, operationType.AUTO_REPAIR);
 		return false;
@@ -39,11 +38,12 @@ public class Repair extends AutoRepairSupport{
 	
 	public void repairAll(Player player) {		
 		
-		ArrayList<ItemStack> couldNotRepair = new ArrayList<ItemStack> (0);
-		HashMap<String, Integer> durabilities = AutoRepairPlugin.getDurabilityCosts();
+		ArrayList<ItemStackPlus> couldNotRepair = new ArrayList<ItemStackPlus> (0);
+
 		
-		for (ItemStack item : player.getInventory().getContents())
+		for (ItemStack itemIndex : player.getInventory().getContents())
 		{
+			ItemStackPlus item = new ItemStackPlus(itemIndex);
 			if (item == null || item.getType() == Material.AIR || item.getType() == Material.WOOL)
 			{
 				continue;
@@ -52,14 +52,15 @@ public class Repair extends AutoRepairSupport{
 			if (item.getDurability() != 0)
 			{
 				doRepairOperation(item, operationType.FULL_REPAIR);
-				if (item.getDurability() != 0 && durabilities.containsKey(item.getType().toString()))
+				if (item.getDurability() != 0)
 				{
 					couldNotRepair.add(item);
 				}
 			}
 		}
-		for (ItemStack item : player.getInventory().getArmorContents())
+		for (ItemStack itemIndex : player.getInventory().getArmorContents())
 		{
+			ItemStackPlus item = new ItemStackPlus(itemIndex);
 			if (item == null || item.getType() == Material.AIR)
 			{
 				continue;
@@ -68,7 +69,7 @@ public class Repair extends AutoRepairSupport{
 			if (item.getDurability() != 0)
 			{
 				doRepairOperation(item, operationType.FULL_REPAIR);
-				if (item.getDurability() != 0 && durabilities.containsKey(item.getType().toString()))
+				if (item.getDurability() != 0)
 				{
 					couldNotRepair.add(item);
 				}
@@ -92,10 +93,11 @@ public class Repair extends AutoRepairSupport{
 	
 	public void repairArmor(Player player) {		
 		
-		ArrayList<ItemStack> couldNotRepair = new ArrayList<ItemStack> (0);
-		HashMap<String, Integer> durabilities = AutoRepairPlugin.getDurabilityCosts();
-		for (ItemStack item : player.getInventory().getArmorContents())
+		ArrayList<ItemStackPlus> couldNotRepair = new ArrayList<ItemStackPlus> (0);
+
+		for (ItemStack itemIndex : player.getInventory().getArmorContents())
 		{
+			ItemStackPlus item = new ItemStackPlus(itemIndex);
 			if (item == null || item.getType() == Material.AIR)
 			{
 				continue;
@@ -104,7 +106,7 @@ public class Repair extends AutoRepairSupport{
 			if (item.getDurability() != 0)
 			{
 				doRepairOperation(item, operationType.FULL_REPAIR);
-				if (item.getDurability() != 0 && durabilities.containsKey(item.getType().toString()))
+				if (item.getDurability() != 0)
 				{
 					couldNotRepair.add(item);
 				}

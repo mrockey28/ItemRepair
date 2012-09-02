@@ -1,7 +1,5 @@
 package com.mrockey28.bukkit.ItemRepair;
 
-import java.util.HashMap;
-
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -121,37 +119,32 @@ public class AutoRepairBlockListener implements Listener {
 		}
 		this.support.setPlayer(player);
 
-		ItemStack toolHand = player.getItemInHand();
+		ItemStackPlus toolHand = new ItemStackPlus(player.getItemInHand());
 		Short dmg = toolHand.getDurability();
+		
+		//If dmg = 0, it's too late
 		if (dmg == 0){
 			return;
-		} else if (dmg ==1) {
+		} 
+		
+		if (dmg ==1) {
 			support.setWarning(false);
 			support.setLastWarning(false);
 		}
-		HashMap<String, Integer> durabilities = AutoRepairPlugin.getDurabilityCosts();
-		String itemName = Material.getMaterial(toolHand.getTypeId()).toString();
 		
-		int durability = 0;
-		if (durabilities.containsKey(itemName)) {
-			durability = durabilities.get(itemName);
-		}
-		else
-		{
-			return;
-		}
+		int itemMaxDurability = toolHand.getMaxDurability();
 		
-		if (dmg > (durability -3) && AutoRepairPlugin.isAutoRepair()) {
+		if (dmg > (itemMaxDurability -3) && AutoRepairPlugin.isAutoRepair()) {
 			repair.autoRepairTool(toolHand);
 		}
 		//If the item is not enchanted, warn at some level
-		else if (!AutoRepairSupport.isEnchanted(toolHand) && (dmg > (durability - 10))) {
+		else if (!toolHand.isEnchanted() && (dmg > (itemMaxDurability - 10))) {
 			support.repairWarn(toolHand);
 		}
 		//If the item IS enchanted, warn at a different level
-		else if (AutoRepairSupport.isEnchanted(toolHand) && 
-				((dmg > (durability - 30)) && (dmg > 60) ||
-				(dmg > (durability - 15)))) {
+		else if (toolHand.isEnchanted() && 
+				((dmg > (itemMaxDurability - 30)) && (dmg > 60) ||
+				(dmg > (itemMaxDurability - 15)))) {
 			support.repairWarn(toolHand);
 		}
 	}
@@ -164,11 +157,9 @@ public class AutoRepairBlockListener implements Listener {
 			return;
 		}
 		this.support.setPlayer(player);
-
-		ItemStack[] armorlist = player.getInventory().getArmorContents();
-		HashMap<String, Integer> durabilities = AutoRepairPlugin.getDurabilityCosts();
 		
-		for (ItemStack piece : armorlist) {
+		for (ItemStack pieceIndex : player.getInventory().getArmorContents()) {
+			ItemStackPlus piece = new ItemStackPlus(pieceIndex);
 			if (piece.getType() == Material.AIR) {
 				continue;
 			}
@@ -181,22 +172,13 @@ public class AutoRepairBlockListener implements Listener {
 				support.setLastWarning(false);
 			}
 			
-			String itemName = Material.getMaterial(piece.getTypeId()).toString();
+			int itemMaxDurability = piece.getMaxDurability();
 			
-			int durability = 0;
-			if (durabilities.containsKey(itemName)) {
-				durability = durabilities.get(itemName);
-			}
-			else
-			{
-				return;
-			}
-			
-			if (dmg > (durability -3) && AutoRepairPlugin.isAutoRepair()) {
+			if (dmg > (itemMaxDurability -3) && AutoRepairPlugin.isAutoRepair()) {
 				repair.autoRepairTool(piece);
-			} else if (durability <= 100 && dmg > (durability - 20)) {
+			} else if (itemMaxDurability <= 100 && dmg > (itemMaxDurability - 20)) {
 				support.repairWarn(piece);
-			} else if (durability > 100 && dmg > (durability - 100)) {
+			} else if (itemMaxDurability > 100 && dmg > (itemMaxDurability - 100)) {
 				support.repairWarn(piece);
 			} 
 		}

@@ -4,13 +4,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
+import javax.swing.text.html.HTMLDocument.Iterator;
+
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-public class RepairRecipe implements ConfigurationSerializable{
+public class RepairRecipe implements ConfigurationSerializable, Cloneable{
 
 	public recipe normal;
 	public recipe enchanted;
@@ -38,6 +40,14 @@ public class RepairRecipe implements ConfigurationSerializable{
 		enchanted = new recipe();
 	}
 	
+	public RepairRecipe clone()
+	{
+		RepairRecipe result = new RepairRecipe();
+		result.enchanted = enchanted.clone();
+		result.normal = normal.clone(); 
+		return result;
+	}
+	
 	public RepairRecipe(FileConfiguration config, String itemName) {
 		
 		this();
@@ -53,23 +63,38 @@ public class RepairRecipe implements ConfigurationSerializable{
 	public recipe getEnchantedCost() {
 		return enchanted;
 	}	
+	public void setEconAdjustedCosts(float percentUsed)
+	{
+		normal.setEconAdjustedCosts(percentUsed);
+		enchanted.setEconAdjustedCosts(percentUsed);
+	}
 	
+	public void setItemAdjustedCosts(float percentUsed)
+	{
+		normal.setItemAdjustedCosts(percentUsed);
+		enchanted.setItemAdjustedCosts(percentUsed);
+	}
+	
+	public void setXpAdjustedCosts(float percentUsed)
+	{
+		normal.setXpAdjustedCosts(percentUsed);
+		enchanted.setXpAdjustedCosts(percentUsed);
+	}
 	
 	public class recipe implements Cloneable{
-		private String costType;
 		private Material material;
 		private ArrayList<ItemStack> repairItems;
 		private double econCost;
 		private double econCostMin;
 		private int xpCost;
 		private int xpCostMin;
+		private int itemCostMin;
 		public boolean valid;
 		
 		
 		
 		
 		private recipe() {
-			costType = "";
 			material = Material.AIR;
 			repairItems = new ArrayList<ItemStack>(0);
 			econCost = 0;
@@ -77,19 +102,21 @@ public class RepairRecipe implements ConfigurationSerializable{
 			xpCost = 0;
 			xpCostMin = 0;
 			valid = false;
+			itemCostMin = 0;
 		}
 		
 		@SuppressWarnings("unchecked")
 		public recipe clone()
 		{
 			recipe result = new recipe();
-			result.costType = costType;
 			result.material = material;
 			result.repairItems = (ArrayList<ItemStack>) repairItems.clone(); 
 			result.econCost = econCost;
 			result.econCostMin = econCostMin;
 			result.xpCost = xpCost;
 			result.xpCostMin = xpCostMin; 
+			result.itemCostMin = itemCostMin;
+			result.valid = valid;
 			return result;
 		}
 		private HashMap<String, Object> serialize() {
@@ -97,10 +124,6 @@ public class RepairRecipe implements ConfigurationSerializable{
 			HashMap<String, Object> serialOutput = new HashMap<String, Object>();
 			
 			//This will all be empty if there is nothing of relevance to do
-			if (costType != "")
-			{
-				serialOutput.put("cost-type", costType);
-			}
 			for (ItemStack i : repairItems)
 			{
 				serialOutput.put(i.getType().toString(), i.getAmount());
@@ -143,10 +166,6 @@ public class RepairRecipe implements ConfigurationSerializable{
 				econCostMin = config.getDouble(pathPrefix + "econ-cost-min");
 				keys.remove("econ-cost-min");
 			}
-			if (keys.contains("cost-type")) {
-				costType = config.getString(pathPrefix + "cost-type");
-				keys.remove("cost-type");
-			}
 			if (keys.contains("xp-cost")) {
 				xpCost = config.getInt(pathPrefix + "xp-cost");
 				keys.remove("xp-cost");
@@ -161,43 +180,47 @@ public class RepairRecipe implements ConfigurationSerializable{
 				item.setAmount(config.getInt(pathPrefix + "." + i));
 				repairItems.add(item.clone());
 			}
-		}
-		
-		
-		public void adjustRepairCost(ItemStackPlus item)
-		{
-			if (AutoRepairPlugin.config.isXpCostOff())
-			{
-				xpCost = 0;
-			}
-			else if (AutoRepairPlugin.config.isXpCostAdjusted())
-			{
-		    	xpCost = (int)adjustCost ((double)xpCost, item);
-	    		if (xpCost < xpCostMin)
-	    		{
-	    			xpCost = xpCostMin;
-	    		}
-		    }
-			
-			if (AutoRepairPlugin.config.isEconCostOff())
-			{
-				econCost = 0;
-			}
-			else if (AutoRepairPlugin.config.isEconCostAdjusted())
-			{
-		    	econCost = adjustCost (econCost, item);
-	    		if (econCost < econCostMin)
-	    		{
-	    			econCost = econCostMin;
-	    		}
-		    }
-		    //repeat this pattern for item cost and econ cost.
-		}
 
-		private double adjustCost (double cost, ItemStackPlus item)
+			checkForValidState();
+		}
+		
+		public void checkForValidState()
 		{
-		    float fraction = item.getDurability() / item.getMaxDurability();
-		    return cost * fraction;
+			if (econCost == 0 && xpCost == 0 && repairItems.isEmpty())
+			{
+				valid = false;
+			}
+		}
+		
+		public void setEconAdjustedCosts(float percentUsed)
+		{
+			econCost= econCost * percentUsed;
+			if (econCost < econCostMin) econCost = econCostMin;
+			
+			checkForValidState();
+		}
+		
+		public void setItemAdjustedCosts(float percentUsed)
+		{
+			int i = 0;
+			while (i < repairItems.size() && repairItems.size() != 0)
+			{
+				ItemStack item = repairItems.get(i);
+				item.setAmount((int)Math.round((float)item.getAmount() * percentUsed));
+				if (item.getAmount() < itemCostMin) item.setAmount(itemCostMin);
+				if (item.getAmount() == 0) repairItems.remove(item);
+				else i++;
+			}
+			
+			checkForValidState();
+		}
+		
+		public void setXpAdjustedCosts(float percentUsed)
+		{
+			xpCost = (int)Math.round((float)xpCost * percentUsed);
+			if (xpCost < xpCostMin) xpCost = xpCostMin;
+			
+			checkForValidState();
 		}
 		
 		//This function HAS to assume that there will be no overflow conditions;
@@ -230,20 +253,7 @@ public class RepairRecipe implements ConfigurationSerializable{
 		        item.deleteAllEnchantments();
 		    }
 
-		}
-		
-		
-		void setCostType (String newCostType) {
-			if (newCostType == "item" || newCostType == "econ" || newCostType == "both")
-			{
-				costType = newCostType;
-			}
-		}
-		
-		public String getCostType () {
-			return costType;
-		}
-		
+		}	
 		
 		void addItemCost (ItemStack newItem) {
 			repairItems.add(newItem);

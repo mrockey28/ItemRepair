@@ -26,7 +26,6 @@ import com.mrockey28.bukkit.ItemRepair.RepairRecipe;
 
 public class AutoRepairPlugin extends JavaPlugin {
 	private final AutoRepairBlockListener blockListener = new AutoRepairBlockListener(this);
-	private static HashMap<String, Integer> durabilityCosts;
 	private static HashMap<String, ArrayList<ItemStack>> repairRecipies;
 	private HashMap<String, Object> settings;
 	private static HashMap<String, Double> iConCosts;
@@ -161,11 +160,11 @@ public class AutoRepairPlugin extends JavaPlugin {
 			}
 
 			log.info("[PLAYER_COMMAND] " + player.getName().toString() + ": /" + commandLabel.toString() + argsOneString);
-			ItemStack tool;
+			ItemStackPlus tool;
 			int itemSlot = 0;
 			if (split.length == 0) {
 				if (isAllowed(player, "repair") && isAllowed(player, "repcommands")) {
-					tool = player.getItemInHand();
+					tool = ItemStackPlus.convert(player.getItemInHand());
 					repair.manualRepair(tool);
 				} else {
 					player.sendMessage("§cYou dont have permission to do the repair command.");
@@ -174,9 +173,9 @@ public class AutoRepairPlugin extends JavaPlugin {
 				try {
 					char repairList = split[0].charAt(0);					
 					if (repairList == '?') {
-						support.toolReq(player.getItemInHand());
+						support.toolReq(ItemStackPlus.convert(player.getItemInHand()));
 					} else if (split[0].equalsIgnoreCase("dmg")) {						
-						support.durabilityLeft(inven.getItem(inven.getHeldItemSlot()));
+						support.durabilityLeft(ItemStackPlus.convert((inven.getItem(inven.getHeldItemSlot()))));
 					} else if (split[0].equalsIgnoreCase("arm")) {						
 						repair.repairArmor(player);
 					} else if (split[0].equalsIgnoreCase("all")) {						
@@ -192,7 +191,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 						if (isAllowed(player, "repair") && isAllowed(player, "repcommands")) {
 							itemSlot = Integer.parseInt(split[0]);
 							if (itemSlot >0 && itemSlot <=9) {
-								tool = inven.getItem(itemSlot -1);
+								tool = ItemStackPlus.convert(inven.getItem(itemSlot -1));
 								repair.manualRepair(tool);
 							} else {
 								player.sendMessage("§6ERROR: Slot must be a quick bar slot between 1 and 9");
@@ -216,7 +215,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 					itemSlot = Integer.parseInt(split[0]);
 					if (getRecipe == '?' && itemSlot >0 && itemSlot <=9) {
 						if (isAllowed(player, "info")) {
-							support.toolReq(inven.getItem(itemSlot-1));
+							support.toolReq(ItemStackPlus.convert(inven.getItem(itemSlot-1)));
 						} else {
 							player.sendMessage("§cYou dont have permission to do the ? or dmg commands.");
 						}
@@ -229,7 +228,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 					if (isAllowed(player, "info")) {
 						itemSlot = Integer.parseInt(split[0]);
 						if (itemSlot >0 && itemSlot <=9) {
-							support.durabilityLeft(inven.getItem(itemSlot -1));
+							support.durabilityLeft(ItemStackPlus.convert(inven.getItem(itemSlot -1)));
 						} else {
 							player.sendMessage("§6ERROR: Slot must be a quick bar slot between 1 and 9");
 						}
@@ -455,7 +454,6 @@ public class AutoRepairPlugin extends JavaPlugin {
 						double amount = Double.parseDouble(line.substring(line.lastIndexOf("=") +1, line.length()));
 						iConomy.put(item, amount);
 						recipe.getNormalCost().setEconCost(amount);
-						recipe.getNormalCost().setCostType("econ");
 					} catch (Exception e) {
 					}
 				} else {
@@ -480,14 +478,6 @@ public class AutoRepairPlugin extends JavaPlugin {
 						ItemStack currItem = new ItemStack(Integer.parseInt(reqs[0]), Integer.parseInt(reqs[1]));
 						itemReqs.add(currItem);
 						recipe.getNormalCost().addItemCost(currItem);
-						if (recipe.getNormalCost().getCostType() == "econ")
-						{
-							recipe.getNormalCost().setCostType("both");
-						}
-						else
-						{
-							recipe.getNormalCost().setCostType("item");
-						}
 					}
 				}
 				
@@ -513,7 +503,6 @@ public class AutoRepairPlugin extends JavaPlugin {
 			reader.close();
 			setiConCosts(iConomy);
 			setRepairRecipies(map);
-			setDurabilityCosts(durab);
 		}
 		catch (Exception e)
 		{
@@ -581,14 +570,6 @@ public class AutoRepairPlugin extends JavaPlugin {
 
 	public static HashMap<String, Double> getiConCosts() {
 		return iConCosts;
-	}
-	
-	public static void setDurabilityCosts(HashMap<String, Integer> durab) {
-		AutoRepairPlugin.durabilityCosts = durab;
-	}
-	
-	public static HashMap<String, Integer> getDurabilityCosts() {
-		return durabilityCosts;
 	}
 	
 	public boolean anvilsAllowed() {

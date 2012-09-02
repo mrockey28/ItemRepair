@@ -81,11 +81,15 @@ public class globalConfig {
 		if (keys.contains("itemCost")) {
 			itemCostType = config.getString(pathPrefix + "itemCost");
 		}
-		if (keys.contains("xpCostType")) {
-			xpCostType = config.getString(pathPrefix + "xpCostType");
+		if (keys.contains("xpCost")) {
+			xpCostType = config.getString(pathPrefix + "xpCost");
 		}
 	}
 		
+	public boolean isAnyCost() {
+		return (this.isEconCostOn() || this.isItemCostOn() || this.isXpCostOn());
+	}
+	
 	public boolean isXpCostOff () {
 		return (xpCostType.equalsIgnoreCase("off"));
 	}
@@ -94,8 +98,12 @@ public class globalConfig {
 		return (xpCostType.equalsIgnoreCase("adjusted"));
 	}
 	
+	public boolean isXpCostFull () {
+		return (xpCostType.equalsIgnoreCase("full"));
+	}
+	
 	public boolean isXpCostOn () {
-		return (xpCostType.equalsIgnoreCase("on"));
+		return (!this.isXpCostOff());
 	}
 	
 	public void turnEconCostOff()

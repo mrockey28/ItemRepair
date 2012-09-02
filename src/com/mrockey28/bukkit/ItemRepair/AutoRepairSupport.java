@@ -34,22 +34,10 @@ public class AutoRepairSupport {
 
 	private boolean warning = false;
 	private boolean lastWarning = false;
-
-	public float CalcPercentUsed(ItemStack tool, int durability)
-	{
-			float percentUsed = -1;
-			percentUsed = (float)tool.getDurability() / (float)durability;
-			return percentUsed;
-	}
 	
-	public boolean accountForRoundingType (int slot, ArrayList<ItemStack> req, String itemName)
-	{
-
-		return true;
-	}
-	
-	public void toolReq(ItemStack tool) {	
-		doRepairOperation(tool, operationType.QUERY);
+	public void toolReq(ItemStackPlus tool) {
+		
+		doQueryOperation(tool);
 	}
 	
 	public void deduct(ArrayList<ItemStack> req) {
@@ -77,130 +65,35 @@ public class AutoRepairSupport {
 		}
 	}
 	
-	class costClass
+	public void doQueryOperation(ItemStackPlus tool)
 	{
-		double cost;
-		public costClass ()
-		{
-			cost = 0;
-		}
-		public costClass (double costInit)
-		{
-			cost = costInit;
+		tool.setAdjustedCosts(AutoRepairPlugin.config);
+		
+		if (!AutoRepairPlugin.config.isAnyCost() || tool.freeRepairs()) {
+			getPlayer().sendMessage("§3No materials needed to repair.");
+			return;
 		}
 		
-	}
-	
-	public boolean getRepairCost (ItemStack tool, ArrayList<ItemStack> req, costClass cost, StringBuilder costType, boolean ignoreRounding) {
+		String queryResponse = "§6It costs";
+		if (AutoRepairPlugin.config.isEconCostOn() && tool.getRepairCosts().getEconCost() != 0)	
+			queryResponse = queryResponse + " " + AutoRepairPlugin.econ.format(tool.getRepairCosts().getEconCost()) + ",";
+
+		if (AutoRepairPlugin.config.isXpCostOn() && tool.getRepairCosts().getXpCost() != 0)
+			queryResponse = queryResponse + " " +  tool.getRepairCosts().getXpCost() + " xp,";
 		
-		String itemName = Material.getMaterial(tool.getTypeId()).toString();
-		HashMap<String, ArrayList<ItemStack> > recipies = AutoRepairPlugin.getRepairRecipies();
-		HashMap<String, Double> econCost = AutoRepairPlugin.getiConCosts();
-		HashMap<String, Integer> durabilities = AutoRepairPlugin.getDurabilityCosts();
-		
-		if (!recipies.containsKey(itemName))
-		{
-			if (costType.toString().equals("item_only") || costType.toString().equals("both")) return false;
-			else if (costType.toString().equals("config")) {
-				costType.replace(0, costType.length(), "econ_only");
-			}
-			
-		}
-		else
-		{
-			//do a deep copy of the required items list so we can modify it temporarily for rounding purposes
-			for (ItemStack i: recipies.get(itemName)) {
-			  req.add((ItemStack)i.clone());
-			}
-		}
-			
-		if (!econCost.containsKey(itemName))
-		{
-			if (costType.toString().equals("econ_only") || costType.toString().equals("both")) return false;
-			else if (costType.toString().equals("config")) {
-				costType.replace(0, costType.length(), "item_only");
-			}
-			
-		}
-		else
-		{
-			cost.cost = econCost.get(itemName);
-		}
-		
-		//By this point, if we haven't set the costtype to something other than "config" or returned,
-		//we should set it to "Both".
-		if (costType.toString().equals("config"))
-		{
-			costType.replace(0, costType.length(), "both");
-		}
-		
-		int durability = durabilities.get(itemName);
-		
-		//do rounding based on dmg already done to item, if called for by config
-		if (ignoreRounding == false && (AutoRepairPlugin.item_rounding != "flat" || AutoRepairPlugin.econ_fractioning != "off"))
-		{
-			
-			float percentUsed = CalcPercentUsed(tool, durability);
-			for (int index = 0; index < req.size(); index++) {
-				float amnt = req.get(index).getAmount();
-				int amntInt;
+		if (AutoRepairPlugin.config.isItemCostOn())
+			queryResponse = queryResponse + " " +  printFormatReqs(tool.getRepairCosts().getItemCost());
 				
-				if (AutoRepairPlugin.item_rounding == "min" || AutoRepairPlugin.item_rounding == "round")
-				{
-					amnt = amnt * percentUsed;
-					amnt = Math.round(amnt);
-					amntInt = (int)amnt;
-					if (AutoRepairPlugin.item_rounding == "min")
-					{
-						if (amntInt == 0)
-						{
-							amntInt = 1;
-						}
-					}
-					req.get(index).setAmount(amntInt);
-				}
-					
-			}
-			//If they turned on economy cost and econ fractioning, round the cost to the correct amount
-			if (!costType.toString().equals("item_only") && AutoRepairPlugin.econ_fractioning == "on")
-			{
-				cost.cost = cost.cost * percentUsed;
-			}
-		}
-		return true;
+		queryResponse = queryResponse.substring(0, queryResponse.length() -1) + " to repair " + tool.getType();
+		getPlayer().sendMessage(queryResponse);
 	}
 	
-	
-	public static boolean isEnchanted(ItemStack tool)
-	{
-		return !tool.getEnchantments().isEmpty();
-	}
-	
-	public void setLocalCostType(StringBuilder costType) {
-	
-		if (AutoRepairPlugin.getUseEcon().equalsIgnoreCase("true")) {
-			costType.append("econ_only");
-		}
-		else if (AutoRepairPlugin.getUseEcon().equalsIgnoreCase("false")) {
-			costType.append("item_only");
-		}
-		else if (AutoRepairPlugin.getUseEcon().equalsIgnoreCase("both")) {
-			costType.append("both");
-		}
-		else if (AutoRepairPlugin.getUseEcon().equalsIgnoreCase("config")) {
-			costType.append("config");
-		}
-		else {
-			costType.append("item_only");
-		}
-	}
-	
-	public void doRepairOperation(ItemStack tool, AutoRepairPlugin.operationType op)
+	public void doRepairOperation(ItemStackPlus tool, AutoRepairPlugin.operationType op)
 	{
 		//If you don't have repair, warn, access, repair.enchanted permissions (whatever necessary to get in here)
 		//this won't let you in. If autorepair is turned off, and you're trying to do an auto-repair operation,
 		//this won't let you past
-		if (!AutoRepairPlugin.isOpAllowed(getPlayer(), op, isEnchanted(tool))) {
+		if (!AutoRepairPlugin.isOpAllowed(getPlayer(), op, tool.isEnchanted())) {
 			return;
 		}
 		
@@ -215,34 +108,19 @@ public class AutoRepairSupport {
 			return;
 		}
 		
-		StringBuilder costType = new StringBuilder();
-		//Handle switching the cost type, since it varies for each item we have to do it here so that we don't mess up the actual config setting
-		setLocalCostType(costType);
-		
-		costClass cost = new costClass();
-		ArrayList<ItemStack> req = new ArrayList<ItemStack> (0);
+		//If we're using economy costs, we need to get the player's economy balance
 		double balance = 0;
-		
-		//It only makes sense calculate adjusted cost if there IS a cost to repairing an item
-		if (op == operationType.AUTO_REPAIR || op == operationType.WARN) {
-			if (getRepairCost (tool, req, cost, costType, true) == false) return;
-		} else {
-			if (getRepairCost (tool, req, cost, costType, false) == false) {
-				if (op != operationType.FULL_REPAIR) player.sendMessage("§6Can't that perform operation on this item.");
-				return;
-			}
-		}
-		if (!costType.toString().equals("item_only")) {
+		if (AutoRepairPlugin.config.isEconCostOn()) {
 			balance = AutoRepairPlugin.econ.getBalance(player.getName());
 		}
 
 		
 		String itemName = Material.getMaterial(tool.getTypeId()).toString();
 		ArrayList<ItemStack> neededItems = new ArrayList<ItemStack>(0);
-		
+		/*
 		try {
 			//No repair costs
-			if (!AutoRepairPlugin.isRepairCosts()) {
+			if (!AutoRepairPlugin.config.isAnyCost() && tool.freeRepairs()) {
 				switch (op)
 				{
 					case WARN:
@@ -257,22 +135,14 @@ public class AutoRepairSupport {
 					case FULL_REPAIR:
 						repItem(tool);
 						break;
-					case QUERY:
-						getPlayer().sendMessage("§3No materials needed to repair.");
-						break;
-						
-				}
-				
+				}	
 			}
 			
 			//Using economy to pay only
-			else if (costType.toString().equals("econ_only"))
+			if (AutoRepairPlugin.config.isEconCostOn())
 			{
 				switch (op)
-				{	case QUERY:
-						player.sendMessage("§6It costs " +  AutoRepairPlugin.econ.format(cost.cost)
-							+ " to repair " + tool.getType());
-						break;
+				{	
 					case AUTO_REPAIR:
 					case MANUAL_REPAIR:
 					case SIGN_REPAIR:
@@ -307,15 +177,10 @@ public class AutoRepairSupport {
 			} 
 			
 			//Using both economy and item costs to pay
-			else if (costType.toString().equals("both")) 
+			if (costType.toString().equals("both")) 
 			{	
 				switch (op)
 				{
-					case QUERY:
-						player.sendMessage("§6To repair " + tool.getType() + " you need: " 
-								+ AutoRepairPlugin.econ.format(cost.cost) + " and");
-						player.sendMessage("§6" + printFormatReqs(req));
-						break;
 					case AUTO_REPAIR:
 					case MANUAL_REPAIR:
 					case SIGN_REPAIR:
@@ -356,14 +221,10 @@ public class AutoRepairSupport {
 			} 
 			
 			//Just using item costs to pay
-			else 
+			if (AutoRepairPlugin.config.isItemCostOn()) 
 			{
 				switch (op)
 				{
-					case QUERY:
-						player.sendMessage("§6To repair " + tool.getType() + " you need:");
-						player.sendMessage("§6" + printFormatReqs(req));
-						break;
 					case AUTO_REPAIR:
 					case MANUAL_REPAIR:
 					case SIGN_REPAIR:
@@ -399,19 +260,18 @@ public class AutoRepairSupport {
 		catch (Exception e) {
 			e.printStackTrace();
 		}
+		*/
 	}
 	
-	public void repairWarn(ItemStack tool) {
+	public void repairWarn(ItemStackPlus tool) {
 		doRepairOperation(tool, operationType.WARN);
 	}
-
-	public boolean wrapRepeatedGetRepairCostCalls (ItemStack armor, ArrayList<ItemStack> req, costClass cost)
+/*
+	public boolean wrapRepeatedGetRepairCostCalls (ItemStackPlus armor, ArrayList<ItemStack> req, costClass cost)
 	{
-		costClass costTemp = new costClass();
 		ArrayList<ItemStack> reqTemp = new ArrayList<ItemStack> (0);
 		StringBuilder costType = new StringBuilder();
 		//Handle switching the cost type, since it varies for each item we have to do it here so that we don't mess up the actual config setting
-		setLocalCostType(costType);
 		
 		if (getRepairCost (armor, reqTemp, costTemp, costType, false) == false) return false;
 		
@@ -436,9 +296,9 @@ public class AutoRepairSupport {
 		cost.cost += costTemp.cost;
 		return true;
 	}
-	
+	*/
 	public boolean repArmourInfo(String query) {
-		
+		/*
 		try {
 			char getRecipe = query.charAt(0);
 			if (getRecipe == '?') {
@@ -450,7 +310,7 @@ public class AutoRepairSupport {
 					
 					for (ItemStack armor : inven.getArmorContents()) {
 						
-						 if (wrapRepeatedGetRepairCostCalls (armor, req, cost) == false)
+						 if (wrapRepeatedGetRepairCostCalls (ItemStackPlus.convert(armor), req, cost) == false)
 						 {
 							 continue;
 						 }
@@ -483,6 +343,8 @@ public class AutoRepairSupport {
 			return false;
 		}
 		return true;
+		*/
+		return true;
 	}
 
 	public ItemStack repItem(ItemStack item) {
@@ -492,9 +354,9 @@ public class AutoRepairSupport {
 	}
 
 	//prints the durability left of the current tool to the player
-	public void durabilityLeft(ItemStack tool) {
+	public void durabilityLeft(ItemStackPlus tool) {
 		if (AutoRepairPlugin.isAllowed(player, "info")) {
-			int usesLeft = this.returnUsesLeft(tool);
+			int usesLeft = tool.getUsesLeft();
 			if (usesLeft != -1) {
 				player.sendMessage("§3" + usesLeft + " uses left untill this tool breaks." );
 			} else {
@@ -504,21 +366,6 @@ public class AutoRepairSupport {
 			player.sendMessage("§cYou dont have permission to do the ? or dmg commands.");
 		}
 
-	}
-
-	public int returnUsesLeft(ItemStack tool) {
-		int usesLeft = -1;
-		int durability = 0;
-		HashMap<String, Integer> durabilities = AutoRepairPlugin.getDurabilityCosts();
-		String itemName = Material.getMaterial(tool.getTypeId()).toString();
-		
-		if (durabilities.containsKey(itemName))
-		{
-			durability = durabilities.get(itemName);
-			usesLeft = durability - tool.getDurability();
-		}
-		
-		return usesLeft;
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -593,11 +440,13 @@ public class AutoRepairSupport {
 
 	public String printFormatReqs(ArrayList<ItemStack> items) {
 		StringBuffer string = new StringBuffer();
-		string.append(" ");
 		for (int i = 0; i < items.size(); i++) {
-			string.append(items.get(i).getAmount() + " " + items.get(i).getType() + " ");
+			if (items.get(i).getAmount() != 0)
+					string.append(items.get(i).getAmount() + " " + items.get(i).getType() + ", ");
 		}
-		return string.toString();
+		String returnString = string.toString();
+		if (returnString.length() != 0) returnString = returnString.substring(0, returnString.length() - 1);
+		return returnString;
 	}
 	
 	public void checkForAnvilRepair(PlayerInteractEvent event)
@@ -628,7 +477,7 @@ public class AutoRepairSupport {
 						if (((Sign)mSign.getState()).getLine(0).equalsIgnoreCase("Anvil"))
 						{
 							setPlayer(event.getPlayer());
-							plugin.repair.anvilRepair(event.getPlayer().getItemInHand());
+							plugin.repair.anvilRepair(ItemStackPlus.convert(event.getPlayer().getItemInHand()));
 							return;
 						}
 					}
