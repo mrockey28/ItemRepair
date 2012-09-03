@@ -174,6 +174,10 @@ public class RepairRecipe implements ConfigurationSerializable, Cloneable{
 				xpCostMin = config.getInt(pathPrefix + "xp-cost-min");
 				keys.remove("xp-cost-min");
 			}
+			if (keys.contains("item-cost-min")) {
+				itemCostMin = config.getInt(pathPrefix + "item-cost-min");
+				keys.remove("item-cost-min");
+			}
 			for (String i : keys) {
 				ItemStack item = new ItemStack(0);
 				item.setType(Material.getMaterial(i));

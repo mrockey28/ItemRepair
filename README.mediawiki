@@ -1,55 +1,79 @@
-v1.84
+v2.00
 
 ==Credits==
 A lot of credit goes to lostaris; I heavily adapted his original plugin to make this compatible with Vault, support the latest versions, etc.
 ==At a glace==
 *Repairs your tools, weapons and armour
-*Repairs can either be free, cost items, cost via economy, or both; these can vary on a per-item basis.
+*Repairs can either be free, cost items, cost via economy, cost xp, or any combination thereof; these can vary on a per-item basis, depending on configuration settings.
 *Repairs can be triggered manually or automatically
 *Allows for indestructible tools
-*Works on enchanted items too!
+*Works on enchanted items too, with the ability to have different prices for enchanted and non-enchanted items!
 *Permissions support through PermissionsBukkit (may work, but not tested with, other Permissions systems)
 *Economy support through Vault
 *Repairs can be set to have varying cost depending on how damaged the item is
 *[NEW] Repair anvils can be constructed to force repairs to occur at a certain location.
 
 ==Features==
-Allows a player can repair their tools, either manually or automatically just before they break. Automatic repairing will trigger on hitting a block with a tool when the tool is about to break. This repairing can be done at the cost of a given amount of one or more materials, a set amount of money if an economy system is in use, or for free.
+Allows a player can repair their tools, either manually or automatically just before they break. Automatic repairing will trigger on hitting a block with a tool when the tool is about to break. This repairing can be done at the cost of a given amount of one or more materials, a set amount of money if an economy system is in use, a set amount of experience points deducted from the player's total, or for free.
 
 ===New===
+====Version 2.00====
+* Added new cost type: XP
+* Added ability to differentiate prices between enchanted and non-enchanted items
+* New, more user-friendly config format; if old config files are present, it will convert their contents to the new format 
+* Config will now install itself when the plugin is run, instead of requiring manual installation
+====Version 1.84====
 * Added ability to construct and repair at Anvils (1 iron block next to a sign that says "anvil")
 * Added ability in configuration to have enchanted items lose their enchantment upon being repaired
 * Added in ''repcommands'' permission node to restrict access only to the manual repair commands
 
 ==Setup==
-===RepairCosts.properties===
-The RepairCosts.properties file sits in your plugin/AutoRepair folder. This file dictates the items that can be repaired, and the (changeable) values associated with repairing that item. The format is as follows (items in <> are optional, with one catch, listed below under '''the catch'''):
+As of version 2.00, there is only one config file for AutoRepair: it's the config.yml in your plugins/AutoRepair folder. This file has two sections, one dedicated to the repair "recipes", and the other dedicated to the configuration.
+==='recipes' section===
+The recipe section enumerates the specific cost for each item that it is possible to repair. Each of the fields under each item is optional; if no fields are present, it is assumed that there is no repair cost for the item and that repairs are free. The following is the largest possible format for one specific item:
 
+  LEATHER_HELMET:
+    normal:
+      LEATHER: 5
+      item-cost-min: 1
+      econ-cost: 5.5
+      econ-cost-min: 1.0
+      xp-cost: 6
+      xp-cost-min: 1
+    enchanted:
+      LEATHER: 5
+      GOLD_INGOT: 1
+      item-cost-min: 1
+      econ-cost: 7.5
+      econ-cost-min: 2.0
+      xp-cost: 20
+      xp-cost-min: 5
 
-<nowiki>[item to be repaired]:[said item's durability]:<[hex val of item to repair with],[amount of that item to use]:[next item to repair with],[amount of next item to use] econ=[cost of repairing when using economy]></nowiki>
+*'normal' vs 'enchanted': it is possible to specify seperate costs for normal and enchanted items.
+*'ITEM_NAME' the item cost of repairing this specific item. There can be multiple item costs for each item, as seen in the example under 'enchanted'.
+*'XXX-cost': the specific cost of repairing the item. If the corresponding config option is turned off, this will be ignored. If this cost is missing, it is assumed that the cost is 0.
+*'XXX-cost-min': if the specific cost is set to be "adjusted" in the config, then this is the minimum cost possible when conducting a repair. This prevents users from repairing after 3 uses of an item, causing the item cost to be 0 every time and thus getting away with free repairs.
+      
+==='config' section===
+The config section now has a layout more consistant with other Bukkit plugins; a series of true/false variables that allow customization of the plugin. Please note, that nothing here is new to version 2.00, it's just presented in a slightly different format. All fields are true/false.
 
-A real use case is:
-
-<blockquote>GOLD_SPADE=33:13,1:280,2 econ=25</blockquote>
-<blockquote>SHEARS=287:65,2</blockquote>
-
-Translation: Gold Spades can be used 33 times before dying; it costs 25 [currency] and/or 1 gravel and 2 sticks to repair. Shears can be used 287 times before dying; they cost 2 ladders to repair.
-
-'''The catch''': Your RepairCosts.properties file must match the "economy" property in your Config.properties file, or things aren't going to work correctly. For example, if you have the config set up to use economy costs, you '''must''' have economy costs in the repair recipes file. If you set the config to use both, you must have both. Additionally, if you set the "economy" property to 'config', you set the cost type of each individual item by varying what costs you list in the recipes file, but you '''must''' have at least ONE cost type listed for each item. 
-
-===Config.properties===
-Config.properties is also located in the plugin/AutoRepair folder. It contains several settable parameters:
-*'''auto-repair''' controls if the auto repairing is turned on ''[true]'', off ''[false]'', or off with no warnings ''[false-nowarnings]''
-*'''repair-costs''' controls whether repairs have a cost ''[true]'' or not ''[false]''; ''[false-nomessages]'' turns off repair costs and "item repaired" notifications. 
-*'''permissions''' controls if the plugin will use ''[true]'' or will not use ''[false]'' the permissions plugin
-*'''economy''' controls if the plugin will use iConomy cash ''[true]'', iConomy cash and items ''[both]'', just items ''[false]'', or have each item's cost type dictated by the AutoRepair.properties file ''[config]''
-*'''item_rounding''' controls if item damage affects item cost ''[round]'', damage affects cost but still a minimum cost of 1 of each item ''[min]'', or damage doesn't affect cost ''[flat]''
-*'''econ_fractioning''' does the same thing as item rounding, but for economy costs, if they're used, and can only be ''[on]'' or ''[off]''
-*'''allow_enchanted''' controls if repairing enchanted items is always allowed ''[true]'', never allowed ''[false]'', ''[permissions]'' based, tied to the AutoRepair.repair.enchanted node, or causes the item in question to ''[lose_enchantment]''.
-*'''[NEW] allow_anvils''' controls if anvils are functional ''[true]'' or non-functional ''[false]''.
+*repairOfEnchantedItems.allow: allow repair of enchanted items.
+*repairOfEnchantedItems.lose-enchantment: if repairs of enchanted items are allowed, they will lose their enchantment upon being repaired
+*usePermissions: if a permissions system is installed, this will force permission checks on all operations. '''ONLY USE IF''' a permissions system is installed.
+*automaticRepair.allow: allow repairs to be done automatically before tools break, if cost requirements are met.
+*automaticRepair.no-warnings: if automatic repairs are disabled, this turns off warnings that would otherwise occur when tools near breaking points.
+*allowAnvilUse: allow construction and use of anvils 
+*econCost.use: use economy cost for an item, if economy linked, and econ cost specified for specific item in recipe section
+*econCost.adjust-for-damage: if econCost is enabled, this will adjust the economy cost of repairing based on the % of damage to the item.
+*xpCost.use: use experience point cost for an item, if xp cost specified for specific item in recipe section
+*xpCost.adjust-for-damage: if xpCost is enabled, this will adjust the xp cost of repairing based on the % of damage to the item.
+*itemCost.use: use item cost for an item, if item cost specified for specific item in recipe section
+*itemCost.adjust-for-damage: if itemCost is enabled, this will adjust the item cost of repairing based on the % of damage to the item.
 
 ==Economy==
 Usage of an economy plugin via Vault is optional. You can configure this plugin to use an economy plugin's cash to charge for a repair. However, if you wish to use an economy plugin you MUST also run Vault.
+
+If an economy plugin and/or Vault is not detected, and you have econCosts enabled in your configuration, these will be disabled until a valid economy is installed.
 
 ==[NEW] Anvils==
 Anvils can now be constructed to force players to conduct their repair operation in one specific location. 
@@ -57,13 +81,16 @@ Anvils can now be constructed to force players to conduct their repair operation
 An anvil is construct by placing an iron block, and then placing a sign that says "anvil" in any neighboring space. Right-clicking the iron block will then initiate the repair, given that the proper configuration and permission options have been set.
 
 Permission and configuration setup for a situation where an admin wishes to limit repairs to only at anvils are as follows: (unmentioned fields are assumed to be non-relevant or up to the admin)
-*allow_anvils=true
-*auto-repair=false-nowarnings
-*permissions=true (need to have a permissions plugin)
+*allowAnvilUse: true
+*automaticRepair.allow: false
+*automaticRepair.no-warnings: true
+*usePermissions: true ''(you need to have a permissions plugin)''
 *permission nodes AutoRepair.access, AutoRepair.repair, and AutoRepair.warn are enabled
 *permission node AutoRepair.repcommand is explicitly disabled
 
 ==Permissions==
+Permissions have not changed in version 2.00.
+
 Bukkit permissions is optional and if permissions is either not installed or is disabled for this plugin, all features will be available for all users. Will be turned on if the line permissions=false in the default config.properties file is changed to true.
 
 Available permission nodes are (case sensitive):
@@ -78,6 +105,8 @@ Available permission nodes are (case sensitive):
 
 
 ==Commands Usage==
+Commands have not changed in version 2.00.
+
 *'/rep [quickbar slot 1-9]' repairs the tool/armour in this slot and deducts cost from inventory
 *'/rep [quickbar slot 1-9] ?' tells you what item and how much of it is needed to repair this item
 *'/rep [quickbar slot 1-9] dmg' tells you how many uses are left before this tool breaks or '/rep', '/rep ?', '/rep dmg' for the item in your hand
