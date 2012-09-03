@@ -32,7 +32,7 @@ permissions:
   AutoRepair.repair:
     description: Allows use of any repair mechanisms, assuming other required permissions are true
     default: false
-  AutoRepair.repcommand:
+  AutoRepair.repcommands:
     description: Allows use of repair console commands
     default: false
   AutoRepair.repair.enchanted:

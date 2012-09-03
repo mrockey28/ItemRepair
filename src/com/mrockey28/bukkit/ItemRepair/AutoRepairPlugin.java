@@ -68,15 +68,15 @@ public class AutoRepairPlugin extends JavaPlugin {
 		File f = new File("plugins/AutoRepair/config.yml");
 		if (!f.exists())
 		{
-			String fileName = "plugins/AutoRepair/RepairCosts.properties";
-			f = new File(fileName);
-			if (f.exists()) {
-				convertOldRepairCosts();	
-			}
-			fileName = "plugins/AutoRepair/Config.properties";
+			String fileName = "plugins/AutoRepair/Config.properties";
 			f = new File(fileName);
 			if (f.exists()) {
 				convertOldConfig();	
+			}
+			fileName = "plugins/AutoRepair/RepairCosts.properties";
+			f = new File(fileName);
+			if (f.exists()) {
+				convertOldRepairCosts();	
 			}
 		}
 		getConfig().options().copyDefaults(true);
@@ -158,14 +158,15 @@ public class AutoRepairPlugin extends JavaPlugin {
 					player.sendMessage("§cYou dont have permission to do the repair command.");
 				}
 			} else if (split.length == 1) {
+				try {
 					char repairList = split[0].charAt(0);					
 					if (repairList == '?') {
 						support.doQueryOperation(ItemStackPlus.convert(player.getItemInHand()));
 					} else if (split[0].equalsIgnoreCase("dmg")) {						
 						support.durabilityLeft(ItemStackPlus.convert((inven.getItem(inven.getHeldItemSlot()))));
-					} else if (split[0].equalsIgnoreCase("arm")) {						
+					} else if (split[0].equalsIgnoreCase("arm") && isAllowed(player, "repcommands")) {						
 						repair.repairArmor(player);
-					} else if (split[0].equalsIgnoreCase("all")) {						
+					} else if (split[0].equalsIgnoreCase("all") && isAllowed(player, "repcommands")) {						
 						repair.repairAll(player);
 					} else if(split[0].equalsIgnoreCase("reload")) {
 						if (isAllowed(player, "reload")){ 
@@ -187,6 +188,10 @@ public class AutoRepairPlugin extends JavaPlugin {
 							player.sendMessage("§cYou dont have permission to do the repair command.");
 						}
 					}
+				}
+				catch (Exception e) {
+					return false;
+				}
 			}else if (split.length == 2 && split[0].equalsIgnoreCase("arm") && split[1].length() ==1) {
 				if (isAllowed(player, "info")) { 
 					support.repArmourInfo(split[1]);
@@ -443,6 +448,8 @@ public class AutoRepairPlugin extends JavaPlugin {
 	
 				String[] allReqs = recipiesString.split(":");
 				int durability = 0;
+				if ((allReqs.length > 0) && getSettings().get("item_rounding").toString().equalsIgnoreCase("min"))
+					recipe.normal.setItemMinCost(1);
 				for (int i =0; i < allReqs.length; i++) {
 					if (i==0)
 					{

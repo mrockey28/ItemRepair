@@ -29,6 +29,8 @@ Allows a player can repair their tools, either manually or automatically just be
 
 ==Setup==
 As of version 2.00, there is only one config file for AutoRepair: it's the config.yml in your plugins/AutoRepair folder. This file has two sections, one dedicated to the repair "recipes", and the other dedicated to the configuration.
+
+If you have the old 1.84 or before config files, then v2.00 will take those settings, and construct a new config.yml from them, and then begin using that file. Settings should not be lost in the transition from 1.84 to 2.00.
 ==='recipes' section===
 The recipe section enumerates the specific cost for each item that it is possible to repair. Each of the fields under each item is optional; if no fields are present, it is assumed that there is no repair cost for the item and that repairs are free. The following is the largest possible format for one specific item:
 

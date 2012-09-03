@@ -102,7 +102,6 @@ public class RepairRecipe implements ConfigurationSerializable, Cloneable{
 			itemCostMin = 0;
 		}
 		
-		@SuppressWarnings("unchecked")
 		public recipe clone()
 		{
 			recipe result = new recipe();
@@ -130,6 +129,9 @@ public class RepairRecipe implements ConfigurationSerializable, Cloneable{
 			}
 			if (econCost > 0) {
 				serialOutput.put("econ-cost", econCost);
+			}
+			if (itemCostMin > 0) {
+				serialOutput.put("item-cost-min", itemCostMin);
 			}
 			
 			return serialOutput;
@@ -226,6 +228,10 @@ public class RepairRecipe implements ConfigurationSerializable, Cloneable{
 			if (xpCost < xpCostMin) xpCost = xpCostMin;
 			
 			checkForValidState();
+		}
+		
+		public void setItemMinCost(int cost) {
+			itemCostMin = cost;
 		}
 		
 		void addItemCost (ItemStack newItem) {
