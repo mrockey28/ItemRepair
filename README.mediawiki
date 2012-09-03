@@ -54,8 +54,7 @@ The recipe section enumerates the specific cost for each item that it is possibl
 *'normal' vs 'enchanted': it is possible to specify seperate costs for normal and enchanted items.
 *'ITEM_NAME' the item cost of repairing this specific item. There can be multiple item costs for each item, as seen in the example under 'enchanted'.
 *'XXX-cost': the specific cost of repairing the item. If the corresponding config option is turned off, this will be ignored. If this cost is missing, it is assumed that the cost is 0.
-*'XXX-cost-min': if the specific cost is set to be "adjusted" in the config, then this is the minimum cost possible when conducting a repair. This prevents users from repairing after 3 uses of an item, causing the item cost to be 0 every time and thus getting away with free repairs.
-      
+*'XXX-cost-min': if the specific cost is set to be "adjusted" in the config, then this is the minimum cost possible when conducting a repair. This prevents users from repairing after 3 uses of an item, causing the item cost to be 0 every time and thus getting away with free repairs.     
 ==='config' section===
 The config section now has a layout more consistant with other Bukkit plugins; a series of true/false variables that allow customization of the plugin. Please note, that nothing here is new to version 2.00, it's just presented in a slightly different format. All fields are true/false.
 
@@ -80,9 +79,9 @@ If an economy plugin and/or Vault is not detected, and you have econCosts enable
 ==[NEW] Anvils==
 Anvils can now be constructed to force players to conduct their repair operation in one specific location. 
 
-An anvil is construct by placing an iron block, and then placing a sign that says "anvil" in any neighboring space. Right-clicking the iron block will then initiate the repair, given that the proper configuration and permission options have been set.
+An anvil is constructed by placing an iron block, and then placing a sign that says "anvil" in any neighboring space. Right-clicking the iron block will then initiate the repair, given that the proper configuration and permission options have been set.
 
-Permission and configuration setup for a situation where an admin wishes to limit repairs to only at anvils are as follows: (unmentioned fields are assumed to be non-relevant or up to the admin)
+Permission and configuration setup for a situation where an admin wishes to limit repairs to only occur at anvils are as follows: (unmentioned fields are assumed to be non-relevant or up to the admin)
 *allowAnvilUse: true
 *automaticRepair.allow: false
 *automaticRepair.no-warnings: true
