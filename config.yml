@@ -98,10 +98,20 @@ recipes:
   DIAMOND_SWORD:
     normal:
 config:
-  allowRepairOfEnchantedItems: true
+  repairOfEnchantedItems:
+    allow: true
+    lose-enchantment: false
   usePermissions: false
-  automaticRepair: true
+  automaticRepair: 
+    allow: true
+    no-warnings: false
   allowAnvilUse: true
-  econCost: full
-  xpCost: full
-  itemCost: full
+  econCost:
+    use: true
+    adjust-for-damage: false
+  xpCost:
+    use: true
+    adjust-for-damage: false
+  itemCost:
+    use: true
+    adjust-for-damage: false

@@ -1,5 +1,7 @@
 package com.mrockey28.bukkit.ItemRepair;
 
+import java.util.logging.Logger;
+
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -23,7 +25,7 @@ public class AutoRepairBlockListener implements Listener {
 	private final AutoRepairPlugin plugin;
 	public AutoRepairSupport support;
 	public Repair repair;
-
+	public static final Logger log = Logger.getLogger("Minecraft");
 	public AutoRepairBlockListener(final AutoRepairPlugin plugin) {
 		this.plugin = plugin;
 		this.support = new AutoRepairSupport(plugin, null);
@@ -120,7 +122,9 @@ public class AutoRepairBlockListener implements Listener {
 		this.support.setPlayer(player);
 
 		ItemStackPlus toolHand = new ItemStackPlus(player.getItemInHand());
-		Short dmg = toolHand.getDurability();
+		
+		//ItemStackPlus toolHand = new ItemStackPlus(player.getItemInHand());
+		Short dmg = toolHand.item.getDurability();
 		
 		//If dmg = 0, it's too late
 		if (dmg == 0){
@@ -133,19 +137,19 @@ public class AutoRepairBlockListener implements Listener {
 		}
 		
 		int itemMaxDurability = toolHand.getMaxDurability();
-		
-		if (dmg > (itemMaxDurability -3) && AutoRepairPlugin.isAutoRepair()) {
+		if (dmg > (itemMaxDurability -3) && AutoRepairPlugin.config.automaticRepair_allow) {
 			repair.autoRepairTool(toolHand);
+			//support.repItem(player.getItemInHand());
 		}
 		//If the item is not enchanted, warn at some level
 		else if (!toolHand.isEnchanted() && (dmg > (itemMaxDurability - 10))) {
-			support.repairWarn(toolHand);
+			support.doWarnOperation(toolHand);
 		}
 		//If the item IS enchanted, warn at a different level
 		else if (toolHand.isEnchanted() && 
 				((dmg > (itemMaxDurability - 30)) && (dmg > 60) ||
 				(dmg > (itemMaxDurability - 15)))) {
-			support.repairWarn(toolHand);
+			support.doWarnOperation(toolHand);
 		}
 	}
 	
@@ -160,11 +164,11 @@ public class AutoRepairBlockListener implements Listener {
 		
 		for (ItemStack pieceIndex : player.getInventory().getArmorContents()) {
 			ItemStackPlus piece = new ItemStackPlus(pieceIndex);
-			if (piece.getType() == Material.AIR) {
+			if (piece.item.getType() == Material.AIR) {
 				continue;
 			}
 			
-			Short dmg = piece.getDurability();
+			Short dmg = piece.item.getDurability();
 			if (dmg == 0){
 				return;
 			} else if (dmg ==1) {
@@ -174,12 +178,12 @@ public class AutoRepairBlockListener implements Listener {
 			
 			int itemMaxDurability = piece.getMaxDurability();
 			
-			if (dmg > (itemMaxDurability -3) && AutoRepairPlugin.isAutoRepair()) {
+			if (dmg > (itemMaxDurability -3) && AutoRepairPlugin.config.automaticRepair_allow) {
 				repair.autoRepairTool(piece);
 			} else if (itemMaxDurability <= 100 && dmg > (itemMaxDurability - 20)) {
-				support.repairWarn(piece);
+				support.doWarnOperation(piece);
 			} else if (itemMaxDurability > 100 && dmg > (itemMaxDurability - 100)) {
-				support.repairWarn(piece);
+				support.doWarnOperation(piece);
 			} 
 		}
 	}

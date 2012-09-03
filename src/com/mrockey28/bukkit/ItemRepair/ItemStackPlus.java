@@ -5,34 +5,40 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 
-public class ItemStackPlus extends ItemStack{
+public class ItemStackPlus{
 
 	int maxDurability;
 	public boolean isRepairable;
 	public RepairRecipe repairCosts; 
-	
+	public ItemStack item;
+	public static final Logger log = Logger.getLogger("Minecraft");
 	public ItemStackPlus(ItemStack stack) {
-		super(stack);
+		
+		item = stack;
 		maxDurability = (int)stack.getType().getMaxDurability();
 		isRepairable = AutoRepairPlugin.recipes.containsKey(stack.getType().toString());
+
 		if (isRepairable)
 		{
 			repairCosts = AutoRepairPlugin.recipes.get(stack.getType().toString()).clone();
 
 		}
+		else
+			repairCosts = new RepairRecipe();
 	}
 	
 	public void setAdjustedCosts(globalConfig config)
 	{
-		float percentUsed = (float)super.getDurability() / (float)maxDurability;
-		if (config.isEconCostAdjusted())
+		float percentUsed = (float)item.getDurability() / (float)maxDurability;
+		if (config.econCostAdjust)
 			repairCosts.setEconAdjustedCosts(percentUsed);
-		if (config.isXpCostAdjusted())
+		if (config.xpCostAdjust)
 			repairCosts.setXpAdjustedCosts(percentUsed);
-		if (config.isItemCostAdjusted())
+		if (config.itemCostAdjust)
 			repairCosts.setItemAdjustedCosts(percentUsed);
 	}
 	
@@ -43,7 +49,17 @@ public class ItemStackPlus extends ItemStack{
 	
 	public String getName()
 	{
-		return super.getType().toString();
+		return item.getType().toString();
+	}
+	
+	public Material getType()
+	{
+		return item.getType();
+	}
+	
+	public int getDurability()
+	{
+		return item.getDurability();
 	}
 	
 	public int getMaxDurability()
@@ -72,14 +88,14 @@ public class ItemStackPlus extends ItemStack{
 	
 	public int getUsesLeft()
 	{
-		if (isRepairable) return maxDurability - super.getDurability();
+		if (isRepairable) return maxDurability - item.getDurability();
 		else return -1;
 
 	}
 	
 	public void deleteAllEnchantments()
 	{
-		Set<?> set = super.getEnchantments().entrySet();
+		Set<?> set = item.getEnchantments().entrySet();
 		Iterator<?> i = set.iterator();
 		
 		while (i.hasNext())
@@ -87,13 +103,18 @@ public class ItemStackPlus extends ItemStack{
 			@SuppressWarnings("rawtypes")
 			Map.Entry me = (Map.Entry)i.next();
 			Enchantment ench = (Enchantment) me.getKey();
-			super.removeEnchantment(ench);
+			item.removeEnchantment(ench);
 		}
+	}
+	
+	public void repair()
+	{
+		item.setDurability((short)0);
 	}
 	
 	public boolean isEnchanted()
 	{
-		return (!super.getEnchantments().isEmpty());
+		return (!item.getEnchantments().isEmpty());
 	}
 
 }

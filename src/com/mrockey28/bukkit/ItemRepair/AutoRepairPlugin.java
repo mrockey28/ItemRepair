@@ -26,24 +26,12 @@ import com.mrockey28.bukkit.ItemRepair.RepairRecipe;
 
 public class AutoRepairPlugin extends JavaPlugin {
 	private final AutoRepairBlockListener blockListener = new AutoRepairBlockListener(this);
-	private static HashMap<String, ArrayList<ItemStack>> repairRecipies;
 	private HashMap<String, Object> settings;
-	private static HashMap<String, Double> iConCosts;
-	private static String useEcon = "false"; //are we using econ, not using econ, using econ and items, or letting the AutoRepair.properties file decide?
-	private static String allowEnchanted = "true";
-	private static boolean allowAnvils = true;
 	private static boolean economyFound = false;
-	private static String autoRepair = "true";
-	private static boolean repairCosts;
-	static boolean issueRepairedNotificationWhenNoRepairCost = true;
-	public static boolean isPermissions = false;
 	
-	public static RepairRecipe recipe;
 	public static HashMap<String, RepairRecipe> recipes = new HashMap<String, RepairRecipe>(0);
-	public static globalConfig config;
+	public static globalConfig config = new globalConfig();
 	public static Economy econ = null;
-	public static String item_rounding = "flat";
-	public static String econ_fractioning = "off";
 	public static final Logger log = Logger.getLogger("Minecraft");
 	//public AutoRepairSupport support = new AutoRepairSupport(this);
 	public Repair repair = new Repair(this);
@@ -170,10 +158,9 @@ public class AutoRepairPlugin extends JavaPlugin {
 					player.sendMessage("§cYou dont have permission to do the repair command.");
 				}
 			} else if (split.length == 1) {
-				try {
 					char repairList = split[0].charAt(0);					
 					if (repairList == '?') {
-						support.toolReq(ItemStackPlus.convert(player.getItemInHand()));
+						support.doQueryOperation(ItemStackPlus.convert(player.getItemInHand()));
 					} else if (split[0].equalsIgnoreCase("dmg")) {						
 						support.durabilityLeft(ItemStackPlus.convert((inven.getItem(inven.getHeldItemSlot()))));
 					} else if (split[0].equalsIgnoreCase("arm")) {						
@@ -200,9 +187,6 @@ public class AutoRepairPlugin extends JavaPlugin {
 							player.sendMessage("§cYou dont have permission to do the repair command.");
 						}
 					}
-				} catch (Exception e) {
-					return false;
-				}
 			}else if (split.length == 2 && split[0].equalsIgnoreCase("arm") && split[1].length() ==1) {
 				if (isAllowed(player, "info")) { 
 					support.repArmourInfo(split[1]);
@@ -215,7 +199,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 					itemSlot = Integer.parseInt(split[0]);
 					if (getRecipe == '?' && itemSlot >0 && itemSlot <=9) {
 						if (isAllowed(player, "info")) {
-							support.toolReq(ItemStackPlus.convert(inven.getItem(itemSlot-1)));
+							support.doQueryOperation(ItemStackPlus.convert(inven.getItem(itemSlot-1)));
 						} else {
 							player.sendMessage("§cYou dont have permission to do the ? or dmg commands.");
 						}
@@ -267,22 +251,22 @@ public class AutoRepairPlugin extends JavaPlugin {
 					return false;
 				} 
 				if (enchanted) {
-					if (allowEnchanted == "false"){
+					if (!config.repairOfEnchantedItems_allow){
 						if (op != operationType.FULL_REPAIR) player.sendMessage("§cEnchanted items can't be repaired.");
 						return false;
-					} else if (allowEnchanted == "permissions" && !isAllowed(player, "repair.enchanted")){
+					} else if (!isAllowed(player, "repair.enchanted")){
 						if (op != operationType.FULL_REPAIR) player.sendMessage("§cYou dont have permission to repair enchanted items.");
 						return false;
 					}
 				}
 				return true;
 			case AUTO_REPAIR:
-				if (!AutoRepairPlugin.isAutoRepair() || !isAllowed(player, "auto") || !isAllowed(player, "repair")) return false;
+				if (!config.automaticRepair_allow || !isAllowed(player, "auto") || !isAllowed(player, "repair")) return false;
 				if (enchanted) {
-					if (allowEnchanted == "false"){
+					if (!config.repairOfEnchantedItems_allow){
 						player.sendMessage("§cEnchanted items can't be repaired.");
 						return false;
-					} else if (allowEnchanted == "permissions" && !isAllowed(player, "repair.enchanted")){
+					} else if (!isAllowed(player, "repair.enchanted")){
 						player.sendMessage("§cYou dont have permission to repair enchanted items.");
 						return false;
 					}
@@ -293,18 +277,15 @@ public class AutoRepairPlugin extends JavaPlugin {
 	}
 	
 	public static boolean isAllowed(Player player, String com) {		
-		boolean allowed = false;
-		if(isPermissions == true) {
+
+		if(config.usePermissions) {
 			if(player.hasPermission("AutoRepair.access") && player.hasPermission("AutoRepair."+com)) {
-				allowed = true;
+				return true;
 			} else {
-				allowed = false;
+				return false;
 			}
-		}else if(isPermissions == false && !com.equalsIgnoreCase("none")) {
-			allowed = true;
 		}
-		
-		return allowed;
+		return true;
 	}
 
 	public HashMap<String, Object> readConfig() {
@@ -331,25 +312,28 @@ public class AutoRepairPlugin extends JavaPlugin {
 			//unless we do something about it. 
 			//Graceful failure dictates that we do something about it. Therefore, we will turn auto-repair off
 			//until the config is able to be read again.
-			setAutoRepair("false");
+			config.setAutoRepairOff();
 		}		
 		return settings;
 
 	}
 	public void refreshConfig() {
+		this.reloadConfig();
 		refreshSettings();
 		refreshRecipes();
 	}
 	public void refreshSettings() {
+		config.clear();
 		config = new globalConfig(getConfig());
-		if (config.isEconCostOn() && !economyFound)
+
+		if (config.econCostUse && !economyFound)
 		{
-			config.turnEconCostOff();
+			config.setEconCostOff();
 		}
 	}
 	
 	public void refreshRecipes() {
-
+		recipes.clear();
 		for(String key : getConfig().getConfigurationSection("recipes").getKeys(false)){			
 			RepairRecipe newRecipe = new RepairRecipe(getConfig(), key);
 			recipes.put(key, newRecipe);
@@ -358,11 +342,16 @@ public class AutoRepairPlugin extends JavaPlugin {
 	
 	public void convertOldConfig() {
 		try {
-			
+			globalConfig config = new globalConfig();
 			setSettings(readConfig());
 			if (getSettings().containsKey("allow_enchanted"))
 			{
-				getSettings().put("allowRepairOfEnchantedItems", (String)getSettings().get("allow_enchanted"));
+				config.repairOfEnchantedItems_allow = true;
+				config.repairOfEnchantedItems_loseEnchantment = false;
+				if (getSettings().get("allow_enchanted").toString().equalsIgnoreCase("false")) 
+					getSettings().put("repairOfEnchantedItems.allow", false);
+				if (getSettings().get("allow_enchanted").toString().equalsIgnoreCase("lose_enchantment")) 
+					getSettings().put("allowRepairOfEnchantedItems", "lose_enchantment");
 				getSettings().remove("allow_enchanted");
 			}
 			if (getSettings().containsKey("allow_anvils"))
@@ -377,7 +366,9 @@ public class AutoRepairPlugin extends JavaPlugin {
 			}
 			if (getSettings().containsKey("auto-repair"))
 			{
-				getSettings().put("automaticRepair", Boolean.parseBoolean((String) getSettings().get("auto-repair")));
+				if (getSettings().get("auto-repair").toString().equalsIgnoreCase("true")) getSettings().put("automaticRepair", "on");
+				if (getSettings().get("auto-repair").toString().equalsIgnoreCase("false")) getSettings().put("automaticRepair", "off");
+				if (getSettings().get("auto-repair").toString().equalsIgnoreCase("false-nowarnings")) getSettings().put("automaticRepair", "off-nowarnings");
 				getSettings().remove("auto-repair");
 			}
 			if (getSettings().containsKey("economy"))
@@ -430,6 +421,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 
 	public void convertOldRepairCosts() {
 		try {
+			RepairRecipe recipe;
 			HashMap<String, ArrayList<ItemStack> > map = new HashMap<String, ArrayList<ItemStack> >();
 			HashMap<String, Double> iConomy = new HashMap<String, Double>();
 			HashMap<String, Integer> durab = new HashMap<String, Integer>();
@@ -485,11 +477,6 @@ public class AutoRepairPlugin extends JavaPlugin {
 				if (!itemReqs.isEmpty()) {
 					map.put(item, itemReqs);
 				}
-				//If there is no recipe and no econ cost, and repair costs are enabled, throw an error
-				else if (!iConomy.containsKey(item) && isRepairCosts())
-				{
-					log.info("[AutoRepair][ERROR] No cost given for item " + item + "!");
-				}
 				
 				//stick durability in the hashmap. if there is no durability, throw an error
 				if (durability != 0){
@@ -501,29 +488,11 @@ public class AutoRepairPlugin extends JavaPlugin {
 			saveConfig();
 			log.info("finished loading config");
 			reader.close();
-			setiConCosts(iConomy);
-			setRepairRecipies(map);
 		}
 		catch (Exception e)
 		{
 			log.info("Error reading AutoRepair recipe file");
 		}
-	}
-
-	public void setUseEcon(String b) {
-		AutoRepairPlugin.useEcon = b;		
-	}
-
-	public static String getUseEcon() {
-		return AutoRepairPlugin.useEcon;
-	}
-
-	public static void setRepairRecipies(HashMap<String, ArrayList<ItemStack>> hashMap) {
-		AutoRepairPlugin.repairRecipies = hashMap;
-	}
-
-	public static HashMap<String, ArrayList<ItemStack>> getRepairRecipies() {
-		return repairRecipies;
 	}
 
 	public void setSettings(HashMap<String, Object> settings) {
@@ -532,59 +501,5 @@ public class AutoRepairPlugin extends JavaPlugin {
 
 	public HashMap<String, Object> getSettings() {
 		return settings;
-	}
-
-	public void setAutoRepair(String autoRepair) {
-		AutoRepairPlugin.autoRepair = autoRepair;
-	}
-
-	public static boolean isAutoRepair() {
-		if (autoRepair.equalsIgnoreCase("false-nowarnings") || autoRepair.equalsIgnoreCase("false")) {
-			return false;
-		}
-		else
-		{
-			return true;
-		}
-		
-	}
-	
-	public static boolean suppressWarningsWithNoAutoRepair() {
-		if (autoRepair.equalsIgnoreCase("false-nowarnings")) {
-			return true;
-		}
-		return false;
-	}
-
-	public void setRepairCosts(boolean repairCosts) {
-		AutoRepairPlugin.repairCosts = repairCosts;
-	}
-
-	public static boolean isRepairCosts() {
-		return repairCosts;
-	}
-
-	public static void setiConCosts(HashMap<String, Double> iConomy) {
-		AutoRepairPlugin.iConCosts = iConomy;
-	}
-
-	public static HashMap<String, Double> getiConCosts() {
-		return iConCosts;
-	}
-	
-	public boolean anvilsAllowed() {
-		return allowAnvils;
-	}
-	
-	public ItemStack checkForRemoveEnchantment(ItemStack item)
-	{
-		if (allowEnchanted.equalsIgnoreCase("lose_enchantment"))
-		{
-			//note that we can put 0 here because ItemStackRevised just becomes a convenient way to
-			//wrap the "delete enchantment" function
-			ItemStackPlus itemExtended = new ItemStackPlus(item);
-			itemExtended.deleteAllEnchantments();
-		}
-		return item;
 	}
 }

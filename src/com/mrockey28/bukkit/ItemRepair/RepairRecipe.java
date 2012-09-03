@@ -4,12 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
-import javax.swing.text.html.HTMLDocument.Iterator;
-
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public class RepairRecipe implements ConfigurationSerializable, Cloneable{
@@ -203,6 +200,7 @@ public class RepairRecipe implements ConfigurationSerializable, Cloneable{
 		public void setItemAdjustedCosts(float percentUsed)
 		{
 			int i = 0;
+			
 			while (i < repairItems.size() && repairItems.size() != 0)
 			{
 				ItemStack item = repairItems.get(i);
@@ -222,38 +220,6 @@ public class RepairRecipe implements ConfigurationSerializable, Cloneable{
 			
 			checkForValidState();
 		}
-		
-		//This function HAS to assume that there will be no overflow conditions;
-		//that there has already been a check done to make sure the cost CAN be deducted. We just need to do it now.
-		public void ApplyCost (ItemStackPlus item, Player player)
-		{
-			//Deduct XP cost
-			player.setExp(player.getExp() - xpCost);
-			
-			//Deduct Econ cost
-			AutoRepairPlugin.econ.withdrawPlayer(player.getName(), econCost);
-		    
-		    //since we can't do player.item -= itemCost,
-		    //the loop below will have to suffice.
-		    for (ItemStack i : repairItems)
-		    {
-		    	
-		        int invenIndex = player.getInventory().first(i.getType());
-		        while (player.getInventory().getItem(invenIndex).getAmount() < i.getAmount())
-		        {
-		        	i.setAmount(i.getAmount() - player.getInventory().getItem(invenIndex).getAmount());
-		            player.getInventory().clear(invenIndex);
-		            invenIndex = player.getInventory().first(i.getType());
-		        }    
-		        player.getInventory().getItem(invenIndex).setAmount(player.getInventory().getItem(invenIndex).getAmount() - i.getAmount());
-		    }
-
-		    if (AutoRepairPlugin.config.removeEnchantmentsOnRepair())
-		    {
-		        item.deleteAllEnchantments();
-		    }
-
-		}	
 		
 		void addItemCost (ItemStack newItem) {
 			repairItems.add(newItem);

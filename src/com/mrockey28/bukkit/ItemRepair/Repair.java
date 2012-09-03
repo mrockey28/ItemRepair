@@ -20,7 +20,6 @@ public class Repair extends AutoRepairSupport{
 	}
 	
 	public boolean manualRepair(ItemStackPlus tool) {
-		//ItemStackPlus toolToBeRepaired = new ItemStackPlus(tool);
 		doRepairOperation(tool, operationType.MANUAL_REPAIR);
 		return false;		
 	}
@@ -40,39 +39,28 @@ public class Repair extends AutoRepairSupport{
 		
 		ArrayList<ItemStackPlus> couldNotRepair = new ArrayList<ItemStackPlus> (0);
 
-		
 		for (ItemStack itemIndex : player.getInventory().getContents())
-		{
-			ItemStackPlus item = new ItemStackPlus(itemIndex);
-			if (item == null || item.getType() == Material.AIR || item.getType() == Material.WOOL)
-			{
+		{	
+			if (itemIndex == null)
 				continue;
-			}
 			
-			if (item.getDurability() != 0)
+			ItemStackPlus item = new ItemStackPlus(itemIndex);
+			doRepairOperation(item, operationType.FULL_REPAIR);
+			if (item.getDurability() != 0 && item.isRepairable)
 			{
-				doRepairOperation(item, operationType.FULL_REPAIR);
-				if (item.getDurability() != 0)
-				{
-					couldNotRepair.add(item);
-				}
+				couldNotRepair.add(item);
 			}
 		}
 		for (ItemStack itemIndex : player.getInventory().getArmorContents())
 		{
-			ItemStackPlus item = new ItemStackPlus(itemIndex);
-			if (item == null || item.getType() == Material.AIR)
-			{
+			if (itemIndex == null)
 				continue;
-			}
 			
-			if (item.getDurability() != 0)
+			ItemStackPlus item = new ItemStackPlus(itemIndex);	
+			doRepairOperation(item, operationType.FULL_REPAIR);
+			if (item.getDurability() != 0 && item.isRepairable)
 			{
-				doRepairOperation(item, operationType.FULL_REPAIR);
-				if (item.getDurability() != 0)
-				{
-					couldNotRepair.add(item);
-				}
+				couldNotRepair.add(item);
 			}
 		}
 		
@@ -80,7 +68,7 @@ public class Repair extends AutoRepairSupport{
 		{
 			String itemsNotRepaired = "";
 			
-			for (ItemStack item : couldNotRepair)
+			for (ItemStackPlus item : couldNotRepair)
 			{
 				itemsNotRepaired += (item.getType().toString() + ", ");
 			}
@@ -117,7 +105,7 @@ public class Repair extends AutoRepairSupport{
 		{
 			String itemsNotRepaired = "";
 			
-			for (ItemStack item : couldNotRepair)
+			for (ItemStackPlus item : couldNotRepair)
 			{
 				itemsNotRepaired += (item.getType().toString() + ", ");
 			}
