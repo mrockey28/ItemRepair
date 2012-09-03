@@ -67,7 +67,6 @@ public class AutoRepairSupport {
 			 !tool.isRepairable) {
 			return;
 		}
-		
 		tool.setAdjustedCosts(AutoRepairPlugin.config);
 		
 		if (!AutoRepairPlugin.config.isAnyCost() || tool.freeRepairs()) {
@@ -81,7 +80,6 @@ public class AutoRepairSupport {
 
 		if (AutoRepairPlugin.config.xpCostUse && tool.getRepairCosts().getXpCost() != 0)
 			queryResponse = queryResponse + " " +  tool.getRepairCosts().getXpCost() + " xp,";
-		
 		if (AutoRepairPlugin.config.itemCostUse)
 			queryResponse = queryResponse +  printFormatReqs(tool.getRepairCosts().getItemCost());
 				

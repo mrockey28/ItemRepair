@@ -232,22 +232,21 @@ public class AutoRepairPlugin extends JavaPlugin {
 	{
 		switch(op)
 		{
+			case WARN:
+				if (!isAllowed(player, "warn")) return false;
+				else return true;
 			case QUERY:
 				if (!isAllowed(player, "info"))
 				{
 					player.sendMessage("§cYou dont have permission to do repair query commands.");
 					return false;
 				}
-				else return true;
-			case WARN:
-				if (!isAllowed(player, "warn")) return false;
-				else return true;
 			case MANUAL_REPAIR:
 			case SIGN_REPAIR:
 			case FULL_REPAIR:
 				if (!isAllowed(player, "repair"))
 				{
-					if (op != operationType.FULL_REPAIR) player.sendMessage("§cYou dont have permission to do the repair command.");
+					if (op != operationType.FULL_REPAIR) player.sendMessage("§cYou dont have permission to do repairs.");
 					return false;
 				} 
 				if (enchanted) {
@@ -349,69 +348,59 @@ public class AutoRepairPlugin extends JavaPlugin {
 				config.repairOfEnchantedItems_allow = true;
 				config.repairOfEnchantedItems_loseEnchantment = false;
 				if (getSettings().get("allow_enchanted").toString().equalsIgnoreCase("false")) 
-					getSettings().put("repairOfEnchantedItems.allow", false);
+					config.repairOfEnchantedItems_allow = false;
 				if (getSettings().get("allow_enchanted").toString().equalsIgnoreCase("lose_enchantment")) 
-					getSettings().put("allowRepairOfEnchantedItems", "lose_enchantment");
-				getSettings().remove("allow_enchanted");
+					config.repairOfEnchantedItems_loseEnchantment = true;
 			}
 			if (getSettings().containsKey("allow_anvils"))
 			{
-				getSettings().put("allowAnvilUse", Boolean.parseBoolean((String) getSettings().get("allow_anvils")));
-				getSettings().remove("allow_anvils");
+				config.allowAnvilUse = Boolean.parseBoolean((String) getSettings().get("allow_anvils"));
 			}
 			if (getSettings().containsKey("permissions"))
 			{
-				getSettings().put("usePermissions", Boolean.parseBoolean((String) getSettings().get("permissions")));
-				getSettings().remove("permissions");
+				config.usePermissions = Boolean.parseBoolean((String) getSettings().get("permissions"));
 			}
 			if (getSettings().containsKey("auto-repair"))
 			{
-				if (getSettings().get("auto-repair").toString().equalsIgnoreCase("true")) getSettings().put("automaticRepair", "on");
-				if (getSettings().get("auto-repair").toString().equalsIgnoreCase("false")) getSettings().put("automaticRepair", "off");
-				if (getSettings().get("auto-repair").toString().equalsIgnoreCase("false-nowarnings")) getSettings().put("automaticRepair", "off-nowarnings");
-				getSettings().remove("auto-repair");
+				config.automaticRepair_allow = false;
+				config.automaticRepair_noWarnings = false;
+				if (getSettings().get("auto-repair").toString().equalsIgnoreCase("true"))
+					config.automaticRepair_allow = true;
+				if (getSettings().get("auto-repair").toString().equalsIgnoreCase("false-nowarnings"))
+					config.automaticRepair_noWarnings = true;
 			}
+			
+			//WE can assume defaults were initialized correctly (use: true, adjust: false) for each cost type
 			if (getSettings().containsKey("economy"))
 			{
 				if (getSettings().containsKey("repair-costs"))
 				{
 					if (getSettings().get("repair-costs").toString().equalsIgnoreCase("false"))
 					{
-						getSettings().put("econCost", "off");
-						getSettings().put("itemCost", "off");
+						config.econCostUse = false;
+						config.xpCostUse = false;
+						config.itemCostUse = false;
 					}
 					else
 					{
 						if (getSettings().get("economy").toString().equalsIgnoreCase("true") || getSettings().get("economy").toString().equalsIgnoreCase("both"))
 						{
-							if (getSettings().get("economy").toString().equalsIgnoreCase("true")) getSettings().put("itemCost", "off");
+							if (getSettings().get("economy").toString().equalsIgnoreCase("true")) 
+								config.itemCostUse = false;
 							if (getSettings().containsKey("econ_fractioning") && getSettings().get("econ_fractioning").toString().equalsIgnoreCase("on"))
-								getSettings().put("econCost", "adjusted");
-							else
-								getSettings().put("econCost", "full");
+								config.econCostAdjust = true;
 						}
 						if (getSettings().get("economy").toString().equalsIgnoreCase("false") || getSettings().get("economy").toString().equalsIgnoreCase("both"))
 						{
-							if (getSettings().get("economy").toString().equalsIgnoreCase("false")) getSettings().put("econCost", "off");
+							if (getSettings().get("economy").toString().equalsIgnoreCase("false")) 
+								config.econCostUse = false;
 							if (getSettings().containsKey("item_rounding") && (getSettings().get("item_rounding").toString().equalsIgnoreCase("min") || getSettings().get("item_rounding").toString().equalsIgnoreCase("round")))
-								getSettings().put("itemCost", "adjusted");
-							else
-								getSettings().put("itemCost", "full");
-						}
-						if (getSettings().get("economy").toString().equalsIgnoreCase("config"))
-						{
-							getSettings().put("econCost", "full");
-							getSettings().put("itemCost", "full");
+								config.itemCostAdjust = true;
 						}
 					}
 				}
-
-				getSettings().remove("economy");
-				getSettings().remove("econ_fractioning");
-				getSettings().remove("item_rounding");
-				getSettings().remove("repair-costs");
 			}
-			getConfig().createSection("config", getSettings());
+			getConfig().createSection("config", config.serialize());
 			
 			
 		} catch (Exception e){

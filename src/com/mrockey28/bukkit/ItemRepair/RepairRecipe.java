@@ -42,7 +42,7 @@ public class RepairRecipe implements ConfigurationSerializable, Cloneable{
 		RepairRecipe result = new RepairRecipe();
 		result.enchanted = enchanted.clone();
 		result.normal = normal.clone(); 
-		return result;
+		return result;	
 	}
 	
 	public RepairRecipe(FileConfiguration config, String itemName) {
@@ -107,7 +107,10 @@ public class RepairRecipe implements ConfigurationSerializable, Cloneable{
 		{
 			recipe result = new recipe();
 			result.material = material;
-			result.repairItems = (ArrayList<ItemStack>) repairItems.clone(); 
+			for (ItemStack i : repairItems)
+			{
+				result.repairItems.add(i.clone());
+			}
 			result.econCost = econCost;
 			result.econCostMin = econCostMin;
 			result.xpCost = xpCost;
