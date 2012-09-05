@@ -233,7 +233,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 		return false;
 	}
 
-	public static boolean isOpAllowed (Player player, operationType op, boolean enchanted)
+	public static boolean isOpAllowed (Player player, operationType op, boolean enchanted, int itemPermGroup)
 	{
 		switch(op)
 		{
@@ -254,6 +254,11 @@ public class AutoRepairPlugin extends JavaPlugin {
 					if (op != operationType.FULL_REPAIR) player.sendMessage("§cYou dont have permission to do repairs.");
 					return false;
 				} 
+				if (!isInRightPermGroup(player, itemPermGroup)) 
+				{
+					if (op != operationType.FULL_REPAIR) player.sendMessage("§cYou don't have permission to repair this particular item.");	
+					return false;
+				}
 				if (enchanted) {
 					if (!config.repairOfEnchantedItems_allow){
 						if (op != operationType.FULL_REPAIR) player.sendMessage("§cEnchanted items can't be repaired.");
@@ -266,18 +271,27 @@ public class AutoRepairPlugin extends JavaPlugin {
 				return true;
 			case AUTO_REPAIR:
 				if (!config.automaticRepair_allow || !isAllowed(player, "auto") || !isAllowed(player, "repair")) return false;
+				if (!isInRightPermGroup(player, itemPermGroup)) return false;
 				if (enchanted) {
 					if (!config.repairOfEnchantedItems_allow){
-						player.sendMessage("§cEnchanted items can't be repaired.");
+						if (!config.automaticRepair_noWarnings) player.sendMessage("§cEnchanted items can't be repaired.");
 						return false;
 					} else if (!isAllowed(player, "repair.enchanted")){
-						player.sendMessage("§cYou dont have permission to repair enchanted items.");
+						if (!config.automaticRepair_noWarnings) player.sendMessage("§cYou dont have permission to repair enchanted items.");
 						return false;
 					}
 				}
 				return true;	
 		}
 		return false;
+	}
+	
+	public static boolean isInRightPermGroup(Player player, int permGroup)
+	{
+		if (permGroup == 0)
+			return true;
+		else
+			return isAllowed(player, "itemgroup" + Integer.toString(permGroup));
 	}
 	
 	public static boolean isAllowed(Player player, String com) {		
@@ -359,7 +373,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 			}
 			if (getSettings().containsKey("allow_anvils"))
 			{
-				config.allowAnvilUse = Boolean.parseBoolean((String) getSettings().get("allow_anvils"));
+				config.anvilUse_allow = Boolean.parseBoolean((String) getSettings().get("allow_anvils"));
 			}
 			if (getSettings().containsKey("permissions"))
 			{

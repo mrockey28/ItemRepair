@@ -2,8 +2,6 @@ package com.mrockey28.bukkit.ItemRepair;
 
 
 import java.util.ArrayList;
-import java.util.logging.Logger;
-
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -12,8 +10,6 @@ import com.mrockey28.bukkit.ItemRepair.AutoRepairPlugin.operationType;
 
 
 public class Repair extends AutoRepairSupport{
-
-	public static final Logger log = Logger.getLogger("Minecraft");
 
 	public Repair(AutoRepairPlugin instance) {
 		super(instance, getPlayer());

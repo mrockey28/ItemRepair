@@ -1,7 +1,5 @@
 package com.mrockey28.bukkit.ItemRepair;
 
-import java.util.logging.Logger;
-
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -25,7 +23,6 @@ public class AutoRepairBlockListener implements Listener {
 	private final AutoRepairPlugin plugin;
 	public AutoRepairSupport support;
 	public Repair repair;
-	public static final Logger log = Logger.getLogger("Minecraft");
 	public AutoRepairBlockListener(final AutoRepairPlugin plugin) {
 		this.plugin = plugin;
 		this.support = new AutoRepairSupport(plugin, null);
@@ -137,18 +134,20 @@ public class AutoRepairBlockListener implements Listener {
 		}
 		
 		int itemMaxDurability = toolHand.getMaxDurability();
-		if (dmg > (itemMaxDurability -3) && AutoRepairPlugin.config.automaticRepair_allow) {
+		if (dmg > (itemMaxDurability -3) && AutoRepairPlugin.config.automaticRepair_allow)
+		{
 			repair.autoRepairTool(toolHand);
-			//support.repItem(player.getItemInHand());
-		}
+		}	
 		//If the item is not enchanted, warn at some level
-		else if (!toolHand.isEnchanted() && (dmg > (itemMaxDurability - 10))) {
+		else if (!toolHand.isEnchanted() && (dmg > (itemMaxDurability - 10))) 
+		{
 			support.doWarnOperation(toolHand);
 		}
 		//If the item IS enchanted, warn at a different level
 		else if (toolHand.isEnchanted() && 
 				((dmg > (itemMaxDurability - 30)) && (dmg > 60) ||
-				(dmg > (itemMaxDurability - 15)))) {
+				(dmg > (itemMaxDurability - 15)))) 
+		{
 			support.doWarnOperation(toolHand);
 		}
 	}
@@ -161,13 +160,13 @@ public class AutoRepairBlockListener implements Listener {
 			return;
 		}
 		this.support.setPlayer(player);
-		
+	
 		for (ItemStack pieceIndex : player.getInventory().getArmorContents()) {
 			ItemStackPlus piece = new ItemStackPlus(pieceIndex);
 			if (piece.item.getType() == Material.AIR) {
 				continue;
 			}
-			
+
 			Short dmg = piece.item.getDurability();
 			if (dmg == 0){
 				return;

@@ -44,3 +44,31 @@ permissions:
   AutoRepair.reload:
     description: Allows use of the reload command, to reload the config files
     default: false
+  AutoRepair.itemgroup1:
+    description: Allows restricting repair to certain sets of items, as specified by the configuration
+    default: false
+  AutoRepair.itemgroup2:
+    description: Allows restricting repair to certain sets of items, as specified by the configuration
+    default: false
+  AutoRepair.itemgroup3:
+    description: Allows restricting repair to certain sets of items, as specified by the configuration
+    default: false
+  AutoRepair.itemgroup4:
+    description: Allows restricting repair to certain sets of items, as specified by the configuration
+    default: false
+  AutoRepair.itemgroup5:
+    description: Allows restricting repair to certain sets of items, as specified by the configuration
+    default: false
+  AutoRepair.itemgroup6:
+    description: Allows restricting repair to certain sets of items, as specified by the configuration
+    default: false
+  AutoRepair.itemgroup7:
+    description: Allows restricting repair to certain sets of items, as specified by the configuration
+    default: false
+  AutoRepair.itemgroup8:
+    description: Allows restricting repair to certain sets of items, as specified by the configuration
+    default: false
+  AutoRepair.itemgroup9:
+    description: Allows restricting repair to certain sets of items, as specified by the configuration
+    default: false
+  

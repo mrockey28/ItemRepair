@@ -35,6 +35,7 @@ If you have the old 1.84 or before config files, then v2.00 will take those sett
 The recipe section enumerates the specific cost for each item that it is possible to repair. Each of the fields under each item is optional; if no fields are present, it is assumed that there is no repair cost for the item and that repairs are free. The following is the largest possible format for one specific item:
 
   LEATHER_HELMET:
+    permission-group: 1
     normal:
       LEATHER: 5
       item-cost-min: 1
@@ -51,19 +52,22 @@ The recipe section enumerates the specific cost for each item that it is possibl
       xp-cost: 20
       xp-cost-min: 5
 
+*'permission-group': Range is 1-9. Allows a specific item to be sorted into one of 9 groups that then require a specific permission to be set in order to allow repair on that group of items. If not specified, items default to 0, which is the same as "no group".
 *'normal' vs 'enchanted': it is possible to specify seperate costs for normal and enchanted items.
 *'ITEM_NAME' the item cost of repairing this specific item. There can be multiple item costs for each item, as seen in the example under 'enchanted'.
 *'XXX-cost': the specific cost of repairing the item. If the corresponding config option is turned off, this will be ignored. If this cost is missing, it is assumed that the cost is 0.
 *'XXX-cost-min': if the specific cost is set to be "adjusted" in the config, then this is the minimum cost possible when conducting a repair. This prevents users from repairing after 3 uses of an item, causing the item cost to be 0 every time and thus getting away with free repairs.     
 ==='config' section===
-The config section now has a layout more consistant with other Bukkit plugins; a series of true/false variables that allow customization of the plugin. Please note, that nothing here is new to version 2.00, it's just presented in a slightly different format. All fields are true/false.
+The config section now has a layout more consistant with other Bukkit plugins; a series of true/false variables that allow customization of the plugin. Please note, that nothing here is new to version 2.00, it's just presented in a slightly different format. All fields are true/false, except for anvilUse.anvilBlockType.
 
 *repairOfEnchantedItems.allow: allow repair of enchanted items.
 *repairOfEnchantedItems.lose-enchantment: if repairs of enchanted items are allowed, they will lose their enchantment upon being repaired
 *usePermissions: if a permissions system is installed, this will force permission checks on all operations. '''ONLY USE IF''' a permissions system is installed.
 *automaticRepair.allow: allow repairs to be done automatically before tools break, if cost requirements are met.
-*automaticRepair.no-warnings: if automatic repairs are disabled, this turns off warnings that would otherwise occur when tools near breaking points.
-*allowAnvilUse: allow construction and use of anvils 
+*automaticRepair.no-warnings: This turns off warnings that would otherwise occur when tools are near breaking points; this is true whether automatic repairs are on or off.
+*automaticRepair.no-notifications: Disables repair notifications that occur when tools are repaired automatically.
+*anvilUse.allow: allow construction and use of anvils 
+*anvilUse.anvilBlockType: specifies the specific block type that is required to make an anvil. Same format as items in the recipe section. Default is IRON_BLOCK.
 *econCost.use: use economy cost for an item, if economy linked, and econ cost specified for specific item in recipe section
 *econCost.adjust-for-damage: if econCost is enabled, this will adjust the economy cost of repairing based on the % of damage to the item.
 *xpCost.use: use experience point cost for an item, if xp cost specified for specific item in recipe section
@@ -82,7 +86,7 @@ Anvils can now be constructed to force players to conduct their repair operation
 An anvil is constructed by placing an iron block, and then placing a sign that says "anvil" in any neighboring space. Right-clicking the iron block will then initiate the repair, given that the proper configuration and permission options have been set.
 
 Permission and configuration setup for a situation where an admin wishes to limit repairs to only occur at anvils are as follows: (unmentioned fields are assumed to be non-relevant or up to the admin)
-*allowAnvilUse: true
+*anvilUse.allow: true
 *automaticRepair.allow: false
 *automaticRepair.no-warnings: true
 *usePermissions: true ''(you need to have a permissions plugin)''
@@ -90,7 +94,7 @@ Permission and configuration setup for a situation where an admin wishes to limi
 *permission node AutoRepair.repcommand is explicitly disabled
 
 ==Permissions==
-Permissions have not changed in version 2.00.
+The only new permissions in version 2.00 are the "itemgroup" permissions. It is necessary to specify each one of these that a user should belong to; if they should belong to all 9 possible itemgroups, then you will have to specify out each of those 9 permissions.
 
 Bukkit permissions is optional and if permissions is either not installed or is disabled for this plugin, all features will be available for all users. Will be turned on if the line permissions=false in the default config.properties file is changed to true.
 
@@ -103,6 +107,9 @@ Available permission nodes are (case sensitive):
 *AutoRepair.repair.enchanted - allows enchanted items to be repaired, if autorepair config is set accordingly
 *AutoRepair.auto -- enables AutoRepair of tools in a user's inventory
 *AutoRepair.reload -- allows a user to reload the plugin
+*AutoRepair.itemgroup1 -- allows a user to repair items that have been set into item group 1 by the configuration
+*AutoRepair.itemgroup2 -- allows a user to repair items that have been set into item group 2 by the configuration
+*AutoRepair.itemgroup[3-9] -- follows the same format as itemgroup1 and 2, but for groups 3 through 9.
 
 
 ==Commands Usage==

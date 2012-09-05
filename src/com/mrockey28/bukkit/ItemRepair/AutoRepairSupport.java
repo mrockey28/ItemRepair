@@ -5,8 +5,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
-
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -63,7 +61,7 @@ public class AutoRepairSupport {
 	public void doQueryOperation(ItemStackPlus tool)
 	{
 		//Prevent query access if object is not repairable or access not allowed by permissions
-		if (!AutoRepairPlugin.isOpAllowed(getPlayer(), operationType.QUERY, tool.isEnchanted()) ||
+		if (!AutoRepairPlugin.isOpAllowed(getPlayer(), operationType.QUERY, tool.isEnchanted(), tool.getPermGroup()) ||
 			 !tool.isRepairable) {
 			return;
 		}
@@ -89,7 +87,7 @@ public class AutoRepairSupport {
 	
 	public void doWarnOperation(ItemStackPlus tool)
 	{
-		if (!AutoRepairPlugin.isOpAllowed(getPlayer(), operationType.WARN, tool.isEnchanted()) ||
+		if (!AutoRepairPlugin.isOpAllowed(getPlayer(), operationType.WARN, tool.isEnchanted(), 0) ||
 				!tool.isRepairable) {
 			return;
 		}
@@ -159,7 +157,7 @@ public class AutoRepairSupport {
 	public void doRepairOperation(ItemStackPlus tool, AutoRepairPlugin.operationType op)
 	{
 		//Check for necessary permissions
-		if (!AutoRepairPlugin.isOpAllowed(getPlayer(), op, tool.isEnchanted())) {
+		if (!AutoRepairPlugin.isOpAllowed(getPlayer(), op, tool.isEnchanted(), tool.getPermGroup())) {
 			return;
 		}
 		
@@ -246,7 +244,7 @@ public class AutoRepairSupport {
 		
 		repairResponse = repairResponse.substring(0, repairResponse.length() -1);
 		repairResponse = repairResponse + " to repair " + tool.getName();
-		if (op != operationType.FULL_REPAIR) {
+		if (op != operationType.FULL_REPAIR && !(op == operationType.AUTO_REPAIR && AutoRepairPlugin.config.automaticRepair_noNotifications)) {
 			player.sendMessage(repairResponse);
 		}
 		repItem(tool);		
@@ -369,7 +367,7 @@ public class AutoRepairSupport {
 		}
 		return total;
 	}
-	public static final Logger log = Logger.getLogger("Minecraft");
+
 	public boolean isEnoughItems (ArrayList<ItemStack> req, ArrayList<ItemStack> neededItems) {
 		boolean enough = true;
 		for (int i =0; i<req.size(); i++) {
@@ -396,7 +394,7 @@ public class AutoRepairSupport {
 	
 	public void checkForAnvilRepair(PlayerInteractEvent event)
 	{
-		if (!AutoRepairPlugin.config.allowAnvilUse)
+		if (!AutoRepairPlugin.config.anvilUse_allow)
 		{
 			return;
 		}
@@ -404,7 +402,7 @@ public class AutoRepairSupport {
 		if (event.getAction() == Action.RIGHT_CLICK_BLOCK)
 		{
 			Block block = event.getClickedBlock();
-			if (block.getType() == Material.IRON_BLOCK)
+			if (block.getType() == AutoRepairPlugin.config.anvilUse_anvilBlockType)
 			{
 				World world = block.getWorld();
 				ArrayList<Block> maybeSign = new ArrayList<Block> (0);

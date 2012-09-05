@@ -105,7 +105,10 @@ config:
   automaticRepair: 
     allow: true
     no-warnings: false
-  allowAnvilUse: true
+    no-notifications: false
+  anvilUse:
+    allow: true
+    anvilBlockType: IRON_BLOCK
   econCost:
     use: true
     adjust-for-damage: false

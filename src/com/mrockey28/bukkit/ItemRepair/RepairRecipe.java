@@ -2,21 +2,27 @@ package com.mrockey28.bukkit.ItemRepair;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.logging.Logger;
-
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.inventory.ItemStack;
 
+/**This is a container class for containing the (multiple) recipes that may be possible in this specific plugin.
+ * In this case, I've only implemented two recipe types: enchanted, and normal (unenchanted). In addition, 
+ * permission-group is specified at the item level, not recipe level, so this seemed the natural place to put it.
+ * @author Matt Rockey
+ *
+ */
 public class RepairRecipe implements ConfigurationSerializable, Cloneable{
 
-	public recipe normal;
-	public recipe enchanted;
+	public recipe normal; //Non-enchanted items
+	public recipe enchanted; //Enchanted items (if not specified for item, defaults to normal)
+	private int permGroup; //Permission group is set at item level
 	
+	//The recipe section of "config.yml" is under recipes.<whatever>
 	private static String configSectionName = "recipes";
-	public static final Logger log = Logger.getLogger("Minecraft");
 	
+	@Override
 	public HashMap<String, Object> serialize() {
 		
 		HashMap<String, Object> serialOutput = new HashMap<String, Object>();
@@ -32,22 +38,33 @@ public class RepairRecipe implements ConfigurationSerializable, Cloneable{
 		return serialOutput;
 	}
 	
+	/**initializes everything to defaults (mostly 0's).
+	 * 
+	 */
 	public RepairRecipe () {
+		permGroup = 0;
 		normal = new recipe();
 		enchanted = new recipe();
 	}
 	
+	@Override
 	public RepairRecipe clone()
 	{
 		RepairRecipe result = new RepairRecipe();
 		result.enchanted = enchanted.clone();
 		result.normal = normal.clone(); 
+		result.permGroup = permGroup;
+		
 		return result;	
 	}
 	
 	public RepairRecipe(FileConfiguration config, String itemName) {
 		
 		this();
+		
+		//If a permission group is set for this item, then set it appropriately within the recipe.
+		if (config.isInt(configSectionName + "." + itemName + ".permission-group"))
+			permGroup = config.getInt(configSectionName + "." + itemName + ".permission-group");
 		
 		normal = new recipe(config, itemName, "normal");
 		enchanted = new recipe(config, itemName, "enchanted");
@@ -60,6 +77,12 @@ public class RepairRecipe implements ConfigurationSerializable, Cloneable{
 	public recipe getEnchantedCost() {
 		return enchanted;
 	}	
+	
+	public int getPermGroup()
+	{
+		return permGroup;
+	}
+	
 	public void setEconAdjustedCosts(float percentUsed)
 	{
 		normal.setEconAdjustedCosts(percentUsed);
@@ -79,7 +102,7 @@ public class RepairRecipe implements ConfigurationSerializable, Cloneable{
 	}
 	
 	public class recipe implements Cloneable{
-		private Material material;
+
 		private ArrayList<ItemStack> repairItems;
 		private double econCost;
 		private double econCostMin;
@@ -92,7 +115,6 @@ public class RepairRecipe implements ConfigurationSerializable, Cloneable{
 		
 		
 		private recipe() {
-			material = Material.AIR;
 			repairItems = new ArrayList<ItemStack>(0);
 			econCost = 0;
 			econCostMin = 0;
@@ -102,10 +124,10 @@ public class RepairRecipe implements ConfigurationSerializable, Cloneable{
 			itemCostMin = 0;
 		}
 		
+		@Override
 		public recipe clone()
 		{
 			recipe result = new recipe();
-			result.material = material;
 			for (ItemStack i : repairItems)
 			{
 				result.repairItems.add(i.clone());
@@ -151,7 +173,6 @@ public class RepairRecipe implements ConfigurationSerializable, Cloneable{
 				return;
 			}
 			
-			material = Material.getMaterial(itemName);
 			//If we got past the check for the actual configuration section, we can confirm that there will be a cost
 			valid = true;
 			
@@ -179,6 +200,10 @@ public class RepairRecipe implements ConfigurationSerializable, Cloneable{
 			if (keys.contains("item-cost-min")) {
 				itemCostMin = config.getInt(pathPrefix + "item-cost-min");
 				keys.remove("item-cost-min");
+			}
+			if (keys.contains("permission-group")) {
+				permGroup = config.getInt(pathPrefix + "permission-group");
+				keys.remove("permission-group");
 			}
 			for (String i : keys) {
 				ItemStack item = new ItemStack(0);
@@ -213,7 +238,7 @@ public class RepairRecipe implements ConfigurationSerializable, Cloneable{
 			while (i < repairItems.size() && repairItems.size() != 0)
 			{
 				ItemStack item = repairItems.get(i);
-				item.setAmount((int)Math.round((float)item.getAmount() * percentUsed));
+				item.setAmount(Math.round(item.getAmount() * percentUsed));
 				if (item.getAmount() < itemCostMin) item.setAmount(itemCostMin);
 				if (item.getAmount() == 0) repairItems.remove(item);
 				else i++;
@@ -224,7 +249,7 @@ public class RepairRecipe implements ConfigurationSerializable, Cloneable{
 		
 		public void setXpAdjustedCosts(float percentUsed)
 		{
-			xpCost = (int)Math.round((float)xpCost * percentUsed);
+			xpCost = Math.round(xpCost * percentUsed);
 			if (xpCost < xpCostMin) xpCost = xpCostMin;
 			
 			checkForValidState();
