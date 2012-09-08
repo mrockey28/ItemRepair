@@ -1,12 +1,12 @@
 name: AutoRepair
 main: com.mrockey28.bukkit.ItemRepair.AutoRepairPlugin
-version: 2.00
+version: 2.10
 authors: [mrockey28, lostaris]
 softdepend: [Vault, PermissionsBukkit]
 commands:
   repair:
     description: uses one or more items to repair a tool or armour
-    aliases: rep
+    aliases: [rep, ar]
     usage: |
       Incorrect usage of command /<command>.
       Proper usage of /<command>

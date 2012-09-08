@@ -30,11 +30,11 @@ public class ItemStackPlus{
 	public ItemStackPlus(ItemStack stack) {
 		
 		item = stack;
-		isRepairable = AutoRepairPlugin.recipes.containsKey(stack.getType().toString());
+		isRepairable = AutoRepairPlugin.recipes.containsKey(stack.getType().getId());
 
 		if (isRepairable)
 		{
-			repairCosts = AutoRepairPlugin.recipes.get(stack.getType().toString()).clone();
+			repairCosts = AutoRepairPlugin.recipes.get(stack.getType().getId()).clone();
 
 		}
 		else

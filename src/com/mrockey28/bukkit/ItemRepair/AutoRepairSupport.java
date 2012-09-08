@@ -85,7 +85,7 @@ public class AutoRepairSupport {
 		getPlayer().sendMessage(queryResponse);
 	}
 	
-	public void doWarnOperation(ItemStackPlus tool)
+	public void doWarnOperation(ItemStackPlus tool, boolean alreadyAdjustedCosts)
 	{
 		if (!AutoRepairPlugin.isOpAllowed(getPlayer(), operationType.WARN, tool.isEnchanted(), 0) ||
 				!tool.isRepairable) {
@@ -103,7 +103,8 @@ public class AutoRepairSupport {
 			return;
 		}
 		
-		tool.setAdjustedCosts(AutoRepairPlugin.config);
+		if (!alreadyAdjustedCosts)
+			tool.setAdjustedCosts(AutoRepairPlugin.config);
 		
 		//If costs are nil, then just return, no need to warn.
 		if (!AutoRepairPlugin.config.isAnyCost() && tool.freeRepairs()) {
@@ -135,19 +136,21 @@ public class AutoRepairSupport {
 		}
 		if (warnResponse.length() != 0)
 		{
-			player.sendMessage("§6WARNING: " + tool.getName() + " will break soon.");
+			if (!alreadyAdjustedCosts)
+				player.sendMessage("§6WARNING: " + tool.getName() + " will break soon.");
+			
 			warnResponse = warnResponse.substring(0, warnResponse.length() -1);
 			warnResponse = "§cYou still need the following to be able to repair:" + warnResponse;
 			player.sendMessage(warnResponse);
 		}
 	}
 	
-	public void doLastWarnOperation(operationType op, ItemStackPlus tool)
+	public void doLastWarnOperation(operationType op, ItemStackPlus tool, boolean alreadyAdjustedCost)
 	{
 		if (op != operationType.FULL_REPAIR){
 			if (op == operationType.MANUAL_REPAIR || op == operationType.SIGN_REPAIR || !getLastWarning()) {
 				setWarning(false);
-				doWarnOperation(tool);
+				doWarnOperation(tool, alreadyAdjustedCost);
 				if (op == operationType.AUTO_REPAIR) setLastWarning(true);	
 				return;
 			}
@@ -196,7 +199,7 @@ public class AutoRepairSupport {
 			} 
 			else 
 			{
-				doLastWarnOperation(op, tool);
+				doLastWarnOperation(op, tool, true);
 				return;	
 			}
 		} 
@@ -210,7 +213,7 @@ public class AutoRepairSupport {
 			} 
 			else 
 			{
-				doLastWarnOperation(op, tool);
+				doLastWarnOperation(op, tool, true);
 				return;	
 			}
 		} 
@@ -224,7 +227,7 @@ public class AutoRepairSupport {
 			}
 			else 
 			{
-				doLastWarnOperation(op, tool);
+				doLastWarnOperation(op, tool, true);
 				return;	
 			}
 		}
@@ -420,8 +423,6 @@ public class AutoRepairSupport {
 						if (((Sign)mSign.getState()).getLine(0).equalsIgnoreCase("Anvil"))
 						{
 							setPlayer(event.getPlayer());
-							
-							event.getPlayer().giveExp(100);
 							plugin.repair.anvilRepair(ItemStackPlus.convert(event.getPlayer().getItemInHand()));
 							return;
 						}

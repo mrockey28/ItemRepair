@@ -1,4 +1,4 @@
-v2.00
+v2.10
 
 ==Credits==
 A lot of credit goes to lostaris; I heavily adapted his original plugin to make this compatible with Vault, support the latest versions, etc.
@@ -17,11 +17,16 @@ A lot of credit goes to lostaris; I heavily adapted his original plugin to make 
 Allows a player can repair their tools, either manually or automatically just before they break. Automatic repairing will trigger on hitting a block with a tool when the tool is about to break. This repairing can be done at the cost of a given amount of one or more materials, a set amount of money if an economy system is in use, a set amount of experience points deducted from the player's total, or for free.
 
 ===New===
+====Version 2.10====
+*Added new command alias: '/ar'
+*Added ability for items to be repaired in the recipe section to be specified as their item id, i.e. DIAMOND_SWORD could also be '276'. This should allow compatibility with weapon mods (however, this is untested! Looking for testing volunteers).
 ====Version 2.00====
 * Added new cost type: XP
 * Added ability to differentiate prices between enchanted and non-enchanted items
 * New, more user-friendly config format; if old config files are present, it will convert their contents to the new format 
 * Config will now install itself when the plugin is run, instead of requiring manual installation
+* Anvil can now be made of configurable block type
+* Added ability to group items into up to 9 seperate groups that each have their own permission node
 ====Version 1.84====
 * Added ability to construct and repair at Anvils (1 iron block next to a sign that says "anvil")
 * Added ability in configuration to have enchanted items lose their enchantment upon being repaired
@@ -51,10 +56,14 @@ The recipe section enumerates the specific cost for each item that it is possibl
       econ-cost-min: 2.0
       xp-cost: 20
       xp-cost-min: 5
+  '276':
+    normal:
+      DIAMOND: 2
+      STICK: 1
 
 *'permission-group': Range is 1-9. Allows a specific item to be sorted into one of 9 groups that then require a specific permission to be set in order to allow repair on that group of items. If not specified, items default to 0, which is the same as "no group".
 *'normal' vs 'enchanted': it is possible to specify seperate costs for normal and enchanted items.
-*'ITEM_NAME' the item cost of repairing this specific item. There can be multiple item costs for each item, as seen in the example under 'enchanted'.
+*ITEM_NAME: the item cost of repairing this specific item. There can be multiple item costs for each item, as seen in the example under 'enchanted'. Alternatively, this can be specified as '<item-data-id>'; this should allow for compatibility with weapon mods (untested!!).
 *'XXX-cost': the specific cost of repairing the item. If the corresponding config option is turned off, this will be ignored. If this cost is missing, it is assumed that the cost is 0.
 *'XXX-cost-min': if the specific cost is set to be "adjusted" in the config, then this is the minimum cost possible when conducting a repair. This prevents users from repairing after 3 uses of an item, causing the item cost to be 0 every time and thus getting away with free repairs.     
 ==='config' section===
@@ -113,7 +122,7 @@ Available permission nodes are (case sensitive):
 
 
 ==Commands Usage==
-Commands have not changed in version 2.00.
+There are three command aliases: '/repair', '/rep', and '/ar'. For convenience, we will use /rep to describe the commands.
 
 *'/rep [quickbar slot 1-9]' repairs the tool/armour in this slot and deducts cost from inventory
 *'/rep [quickbar slot 1-9] ?' tells you what item and how much of it is needed to repair this item

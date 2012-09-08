@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.inventory.ItemStack;
@@ -29,7 +30,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 	private HashMap<String, Object> settings;
 	private static boolean economyFound = false;
 	
-	public static HashMap<String, RepairRecipe> recipes = new HashMap<String, RepairRecipe>(0);
+	public static HashMap<Integer, RepairRecipe> recipes = new HashMap<Integer, RepairRecipe>(0);
 	public static globalConfig config = new globalConfig();
 	public static Economy econ = null;
 	public static final Logger log = Logger.getLogger("Minecraft");
@@ -354,7 +355,19 @@ public class AutoRepairPlugin extends JavaPlugin {
 		recipes.clear();
 		for(String key : getConfig().getConfigurationSection("recipes").getKeys(false)){			
 			RepairRecipe newRecipe = new RepairRecipe(getConfig(), key);
-			recipes.put(key, newRecipe);
+			int keyInt;
+			try {
+				keyInt = Integer.parseInt(key);
+			}
+			catch (NumberFormatException e){
+				keyInt = Material.getMaterial(key).getId();
+			}
+			
+			//We need to check and make sure they're not putting something 
+			//stupidly non-repairable in the recipe db. This should still
+			//allow custom weapon mods to be compatible.
+			if (Material.getMaterial(keyInt).getMaxDurability() != 0)
+				recipes.put(keyInt, newRecipe);
 		}	
 	}
 	
