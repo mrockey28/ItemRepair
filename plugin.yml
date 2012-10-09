@@ -1,6 +1,6 @@
 name: AutoRepair
 main: com.mrockey28.bukkit.ItemRepair.AutoRepairPlugin
-version: 2.10
+version: 2.11
 authors: [mrockey28, lostaris]
 softdepend: [Vault, PermissionsBukkit]
 commands:

@@ -7,6 +7,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockDamageEvent;
+import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
@@ -104,6 +105,55 @@ public class AutoRepairBlockListener implements Listener {
 		support.setWarning(false);
 		support.setLastWarning(false);
 	}
+	
+	/////////The following block of code is from EconXP. This is to fix Bukkit's issue where they don't properly
+	//update the players total XP.
+	
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onEnchantItem(EnchantItemEvent event) {
+		if (event.isCancelled()) {
+			return;
+		}
+		
+		// Get the event player.
+		Player p = event.getEnchanter();
+		
+		// Calculate the cost based on level.
+		int newLevel = p.getLevel() - event.getExpLevelCost();
+		int newTotal = convertLevelToExp(newLevel);
+
+		// Add in what's remaining in the bar.
+		newTotal += Math.floor(p.getExp() * getExpTolevel(newLevel));
+
+		// Set the experience so that levels are calculated properly.
+		 // Clear current experience.
+		 p.setTotalExperience( 0 );
+		 p.setLevel( 0 );
+		 p.setExp( 0 );
+		
+		 // Set the experience.
+		 p.giveExp( newTotal );
+
+		// Fake a cost of no levels so that Bukkit doesn't alter the level.
+		event.setExpLevelCost(0);
+	}
+
+	public int convertLevelToExp(int level) {
+		int total = 0;
+
+		while (level > 0) {
+			total += getExpTolevel(level - 1);
+			level--;
+		}
+
+		return total;
+	}
+
+	public int getExpTolevel(int level) {
+		return 7 + (level * 7 >> 1);
+	}
+	
+	//////////End block of code from EconXP.
 	
 //////
 //NON-EVENT HANDLER FUNCTIONS
