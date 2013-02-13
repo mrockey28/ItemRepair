@@ -1,5 +1,7 @@
 package com.mrockey28.bukkit.ItemRepair;
 
+
+
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -13,6 +15,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.inventory.ItemStack;
 
 
@@ -24,6 +27,7 @@ public class AutoRepairBlockListener implements Listener {
 	private final AutoRepairPlugin plugin;
 	public AutoRepairSupport support;
 	public Repair repair;
+
 	public AutoRepairBlockListener(final AutoRepairPlugin plugin) {
 		this.plugin = plugin;
 		this.support = new AutoRepairSupport(plugin, null);
@@ -71,6 +75,14 @@ public class AutoRepairBlockListener implements Listener {
 		Player player = (Player) event.getEntity();
 		
 		eventAffectsItemInHand(player);
+		
+	}
+	
+	@EventHandler
+	//This is only needed so bows autorepair
+	public void onPlayerFishEvent(PlayerFishEvent event) {
+
+		eventAffectsItemInHand(event.getPlayer());
 		
 	}
 	
@@ -182,8 +194,9 @@ public class AutoRepairBlockListener implements Listener {
 			support.setWarning(false);
 			support.setLastWarning(false);
 		}
-		
+
 		int itemMaxDurability = toolHand.getMaxDurability();
+
 		if (dmg > (itemMaxDurability -3) && AutoRepairPlugin.config.automaticRepair_allow)
 		{
 			repair.autoRepairTool(toolHand);

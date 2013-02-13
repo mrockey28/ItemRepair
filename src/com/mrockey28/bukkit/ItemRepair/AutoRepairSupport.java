@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -24,7 +25,6 @@ import com.mrockey28.bukkit.ItemRepair.AutoRepairPlugin.operationType;
 public class AutoRepairSupport {
 	private final AutoRepairPlugin plugin;
 	protected static Player player;
-
 	public AutoRepairSupport(AutoRepairPlugin instance, Player player) {
 		plugin = instance;
 		AutoRepairSupport.player = player;
@@ -182,9 +182,8 @@ public class AutoRepairSupport {
 		
 		//No repair costs
 		if (!AutoRepairPlugin.config.isAnyCost() && tool.freeRepairs()) {
-			if (op == operationType.FULL_REPAIR)
-				repItem(tool);
-			else
+			repItem(tool);
+			if (op != operationType.FULL_REPAIR && !(op == operationType.AUTO_REPAIR && AutoRepairPlugin.config.automaticRepair_noNotifications))
 				getPlayer().sendMessage("§3Repaired " + tool.getName());
 			return;
 		}
