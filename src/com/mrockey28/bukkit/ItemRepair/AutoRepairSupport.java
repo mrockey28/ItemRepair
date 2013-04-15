@@ -97,9 +97,9 @@ public class AutoRepairSupport {
 			return;
 		else warning = true;
 		
-		if (!AutoRepairPlugin.config.automaticRepair_allow) {
+		if (!AutoRepairPlugin.config.automaticRepair_allow || !AutoRepairPlugin.isOpAllowed(getPlayer(), operationType.AUTO_REPAIR, tool.isEnchanted(), 0)) {
 			if (!AutoRepairPlugin.config.automaticRepair_noWarnings) 
-				player.sendMessage("§6WARNING: " + tool.getName() + " will break soon; auto repairing disabled.");
+				player.sendMessage("§6WARNING: " + tool.getName() + " will break soon; this item will not auto repair.");
 			return;
 		}
 		
@@ -167,6 +167,8 @@ public class AutoRepairSupport {
 		//Prevent repairs on things that don't appear in the repair file (i.e. dyes)
 		if (!tool.isRepairable)
 		{
+			if (op == operationType.MANUAL_REPAIR || op == operationType.SIGN_REPAIR)
+				player.sendMessage("§c" + tool.getName() + " is not repairable.");
 			return;
 		}
 		

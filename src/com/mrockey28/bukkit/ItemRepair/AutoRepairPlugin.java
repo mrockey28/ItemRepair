@@ -165,10 +165,22 @@ public class AutoRepairPlugin extends JavaPlugin {
 						support.doQueryOperation(ItemStackPlus.convert(player.getItemInHand()));
 					} else if (split[0].equalsIgnoreCase("dmg")) {						
 						support.durabilityLeft(ItemStackPlus.convert((inven.getItem(inven.getHeldItemSlot()))));
-					} else if (split[0].equalsIgnoreCase("arm") && isAllowed(player, "repcommands")) {						
-						repair.repairArmor(player);
-					} else if (split[0].equalsIgnoreCase("all") && isAllowed(player, "repcommands")) {						
-						repair.repairAll(player);
+					} else if (split[0].equalsIgnoreCase("arm")) {
+						if (isAllowed(player, "repair") && isAllowed(player, "repcommands")) {
+							player.sendMessage("§3Attempting to repair all armor.");
+							repair.repairArmor(player);
+						}
+						else {
+							player.sendMessage("§cYou don't have permission to do that.");
+						}
+					} else if (split[0].equalsIgnoreCase("all")) {
+						if (isAllowed(player, "repair") && isAllowed(player, "repcommands")) {
+							player.sendMessage("§3Attempting to repair all items in inventory.");
+							repair.repairAll(player);
+						}
+						else {
+							player.sendMessage("§cYou don't have permission to do that.");
+						}
 					} else if(split[0].equalsIgnoreCase("reload")) {
 						if (isAllowed(player, "reload")){ 
 							refreshConfig();
