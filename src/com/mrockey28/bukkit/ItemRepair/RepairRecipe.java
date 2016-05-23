@@ -206,8 +206,7 @@ public class RepairRecipe implements ConfigurationSerializable, Cloneable{
 				keys.remove("permission-group");
 			}
 			for (String i : keys) {
-				ItemStack item = new ItemStack(0);
-				item.setType(Material.getMaterial(i));
+				ItemStack item = new ItemStack(Material.getMaterial(i));
 				item.setAmount(config.getInt(pathPrefix + "." + i));
 				repairItems.add(item.clone());
 			}

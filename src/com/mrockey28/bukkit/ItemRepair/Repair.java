@@ -8,6 +8,7 @@ import org.bukkit.inventory.ItemStack;
 
 import com.mrockey28.bukkit.ItemRepair.AutoRepairPlugin.operationType;
 
+import net.md_5.bungee.api.ChatColor;
 
 public class Repair extends AutoRepairSupport{
 
@@ -69,8 +70,8 @@ public class Repair extends AutoRepairSupport{
 				itemsNotRepaired += (item.getType().toString() + ", ");
 			}
 			itemsNotRepaired = itemsNotRepaired.substring(0, itemsNotRepaired.length() - 2);
-			player.sendMessage("§cDid not repair the following items: ");
-			player.sendMessage("§c" + itemsNotRepaired);
+			player.sendMessage(ChatColor.RED + "Did not repair the following items: ");
+			player.sendMessage(ChatColor.RED + itemsNotRepaired);
 		}
 		
 	}
@@ -106,8 +107,8 @@ public class Repair extends AutoRepairSupport{
 				itemsNotRepaired += (item.getType().toString() + ", ");
 			}
 			itemsNotRepaired = itemsNotRepaired.substring(0, itemsNotRepaired.length() - 2);
-			player.sendMessage("§cDid not repair the following items: ");
-			player.sendMessage("§c" + itemsNotRepaired);
+			player.sendMessage(ChatColor.RED + "Did not repair the following items: ");
+			player.sendMessage(ChatColor.RED + itemsNotRepaired);
 		}	
 	}
 }

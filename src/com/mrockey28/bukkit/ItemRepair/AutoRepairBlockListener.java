@@ -5,16 +5,17 @@ package com.mrockey28.bukkit.ItemRepair;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
-import org.bukkit.event.player.PlayerItemHeldEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerFishEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemDamageEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.ItemStack;
 
 
@@ -46,6 +47,11 @@ public class AutoRepairBlockListener implements Listener {
 		eventAffectsItemInHand(event.getPlayer());
 	}
 
+	@EventHandler
+	public void PlayerItemDamageEvent(PlayerItemDamageEvent event) {
+		if (event.getDamage() > 2)
+			event.setDamage(2);
+	}
 	@EventHandler
 	//Need to check item in hand for damager when something or someone is damaged
 	//as the damager could be using a sword or other breakable item
@@ -130,7 +136,7 @@ public class AutoRepairBlockListener implements Listener {
 		}
 		this.support.setPlayer(player);
 
-		ItemStackPlus toolHand = new ItemStackPlus(player.getItemInHand());
+		ItemStackPlus toolHand = ItemStackPlus.convert(player.getInventory());
 		
 		//ItemStackPlus toolHand = new ItemStackPlus(player.getItemInHand());
 		Short dmg = toolHand.item.getDurability();
@@ -175,14 +181,19 @@ public class AutoRepairBlockListener implements Listener {
 		this.support.setPlayer(player);
 	
 		for (ItemStack pieceIndex : player.getInventory().getArmorContents()) {
-			ItemStackPlus piece = new ItemStackPlus(pieceIndex);
+			if (!armorDamage(pieceIndex))
+				return;
+		}
+	}
+	public boolean armorDamage(ItemStack item) {
+		ItemStackPlus piece = new ItemStackPlus(item);
 			if (piece.item.getType() == Material.AIR) {
-				continue;
+			return true;
 			}
 
 			Short dmg = piece.item.getDurability();
 			if (dmg == 0){
-				return;
+			return false;
 			} else if (dmg ==1) {
 				support.setWarning(false);
 				support.setLastWarning(false);
@@ -196,8 +207,8 @@ public class AutoRepairBlockListener implements Listener {
 				support.doWarnOperation(piece, false);
 			} else if (itemMaxDurability > 100 && dmg > (itemMaxDurability - 100)) {
 				support.doWarnOperation(piece, false);
-			} 
 		}
+		return true;
 	}
 
 

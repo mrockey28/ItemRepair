@@ -8,13 +8,14 @@ import java.util.HashMap;
 import java.util.logging.Logger;
 
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import net.md_5.bungee.api.ChatColor;
 import net.milkbowl.vault.economy.Economy;
 
 import com.mrockey28.bukkit.ItemRepair.RepairRecipe;
@@ -50,6 +51,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 		ConfigurationSerialization.registerClass(RepairRecipe.class);
 	}
 
+	@Override
 	public void onEnable() {
 		//  Place any custom enable code here including the registration of any events
 		// Register our events
@@ -101,6 +103,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 	     return econ != null;
 	}	
 	
+	@Override
 	public void onDisable() {
 		//  Place any custom disable code here
 
@@ -153,40 +156,40 @@ public class AutoRepairPlugin extends JavaPlugin {
 			int itemSlot = 0;
 			if (split.length == 0) {
 				if (isAllowed(player, "repair") && isAllowed(player, "repcommands")) {
-					tool = ItemStackPlus.convert(player.getItemInHand());
+					tool = ItemStackPlus.convert(inven);
 					repair.manualRepair(tool);
 				} else {
-					player.sendMessage("§cYou dont have permission to do the repair command.");
+					player.sendMessage(ChatColor.RED + "You dont have permission to do the repair command.");
 				}
 			} else if (split.length == 1) {
 				try {
 					char repairList = split[0].charAt(0);					
 					if (repairList == '?') {
-						support.doQueryOperation(ItemStackPlus.convert(player.getItemInHand()));
+						support.doQueryOperation(ItemStackPlus.convert(inven));
 					} else if (split[0].equalsIgnoreCase("dmg")) {						
 						support.durabilityLeft(ItemStackPlus.convert((inven.getItem(inven.getHeldItemSlot()))));
 					} else if (split[0].equalsIgnoreCase("arm")) {
 						if (isAllowed(player, "repair") && isAllowed(player, "repcommands")) {
-							player.sendMessage("§3Attempting to repair all armor.");
+							player.sendMessage(ChatColor.DARK_AQUA + "Attempting to repair all armor.");
 							repair.repairArmor(player);
 						}
 						else {
-							player.sendMessage("§cYou don't have permission to do that.");
+							player.sendMessage(ChatColor.RED + "You don't have permission to do that.");
 						}
 					} else if (split[0].equalsIgnoreCase("all")) {
 						if (isAllowed(player, "repair") && isAllowed(player, "repcommands")) {
-							player.sendMessage("§3Attempting to repair all items in inventory.");
+							player.sendMessage(ChatColor.DARK_AQUA + "Attempting to repair all items in inventory.");
 							repair.repairAll(player);
 						}
 						else {
-							player.sendMessage("§cYou don't have permission to do that.");
+							player.sendMessage(ChatColor.RED + "You don't have permission to do that.");
 						}
 					} else if(split[0].equalsIgnoreCase("reload")) {
 						if (isAllowed(player, "reload")){ 
 							refreshConfig();
-							player.sendMessage("§3Re-loaded AutoRepair config files");
+							player.sendMessage(ChatColor.DARK_AQUA + "Re-loaded AutoRepair config files");
 						} else {
-							player.sendMessage("§cYou dont have permission to do the reload command.");
+							player.sendMessage(ChatColor.RED + "You dont have permission to do the reload command.");
 						}
 					}else {
 						if (isAllowed(player, "repair") && isAllowed(player, "repcommands")) {
@@ -195,10 +198,10 @@ public class AutoRepairPlugin extends JavaPlugin {
 								tool = ItemStackPlus.convert(inven.getItem(itemSlot -1));
 								repair.manualRepair(tool);
 							} else {
-								player.sendMessage("§6ERROR: Slot must be a quick bar slot between 1 and 9");
+								player.sendMessage(ChatColor.GOLD + "ERROR: Slot must be a quick bar slot between 1 and 9");
 							}	
 						} else {
-							player.sendMessage("§cYou dont have permission to do the repair command.");
+							player.sendMessage(ChatColor.GOLD + "You dont have permission to do the repair command.");
 						}
 					}
 				}
@@ -209,7 +212,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 				if (isAllowed(player, "info")) { 
 					support.repArmourInfo(split[1]);
 				} else {
-					player.sendMessage("§cYou dont have permission to do the ? or dmg commands.");
+					player.sendMessage(ChatColor.RED + "You dont have permission to do the ? or dmg commands.");
 				}
 			}else if ((split.length == 2 && split[1].length() ==1)) {
 				try {
@@ -219,7 +222,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 						if (isAllowed(player, "info")) {
 							support.doQueryOperation(ItemStackPlus.convert(inven.getItem(itemSlot-1)));
 						} else {
-							player.sendMessage("§cYou dont have permission to do the ? or dmg commands.");
+							player.sendMessage(ChatColor.RED + "You dont have permission to do the ? or dmg commands.");
 						}
 					}
 				} catch (Exception e) {
@@ -232,10 +235,10 @@ public class AutoRepairPlugin extends JavaPlugin {
 						if (itemSlot >0 && itemSlot <=9) {
 							support.durabilityLeft(ItemStackPlus.convert(inven.getItem(itemSlot -1)));
 						} else {
-							player.sendMessage("§6ERROR: Slot must be a quick bar slot between 1 and 9");
+							player.sendMessage(ChatColor.GOLD + "ERROR: Slot must be a quick bar slot between 1 and 9");
 						}
 					} else {
-						player.sendMessage("§cYou dont have permission to do the ? or dmg commands.");
+						player.sendMessage(ChatColor.RED + "You dont have permission to do the ? or dmg commands.");
 					}
 				} catch (Exception e) {
 					return false;
@@ -256,7 +259,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 			case QUERY:
 				if (!isAllowed(player, "info"))
 				{
-					player.sendMessage("§cYou dont have permission to do repair query commands.");
+					player.sendMessage(ChatColor.RED + "You dont have permission to do repair query commands.");
 					return false;
 				}
 			case MANUAL_REPAIR:
@@ -264,20 +267,20 @@ public class AutoRepairPlugin extends JavaPlugin {
 			case FULL_REPAIR:
 				if (!isAllowed(player, "repair"))
 				{
-					if (op != operationType.FULL_REPAIR) player.sendMessage("§cYou dont have permission to do repairs.");
+					if (op != operationType.FULL_REPAIR) player.sendMessage(ChatColor.RED + "You dont have permission to do repairs.");
 					return false;
 				} 
 				if (!isInRightPermGroup(player, itemPermGroup)) 
 				{
-					if (op != operationType.FULL_REPAIR) player.sendMessage("§cYou don't have permission to repair this particular item.");	
+					if (op != operationType.FULL_REPAIR) player.sendMessage(ChatColor.RED + "You don't have permission to repair this particular item.");	
 					return false;
 				}
 				if (enchanted) {
 					if (!config.repairOfEnchantedItems_allow){
-						if (op != operationType.FULL_REPAIR) player.sendMessage("§cEnchanted items can't be repaired.");
+						if (op != operationType.FULL_REPAIR) player.sendMessage(ChatColor.RED + "Enchanted items can't be repaired.");
 						return false;
 					} else if (!isAllowed(player, "repair.enchanted")){
-						if (op != operationType.FULL_REPAIR) player.sendMessage("§cYou dont have permission to repair enchanted items.");
+						if (op != operationType.FULL_REPAIR) player.sendMessage(ChatColor.RED + "You dont have permission to repair enchanted items.");
 						return false;
 					}
 				}
@@ -287,10 +290,10 @@ public class AutoRepairPlugin extends JavaPlugin {
 				if (!isInRightPermGroup(player, itemPermGroup)) return false;
 				if (enchanted) {
 					if (!config.repairOfEnchantedItems_allow){
-						if (!config.automaticRepair_noWarnings) player.sendMessage("§cEnchanted items can't be repaired.");
+						if (!config.automaticRepair_noWarnings) player.sendMessage(ChatColor.RED + "Enchanted items can't be repaired.");
 						return false;
 					} else if (!isAllowed(player, "repair.enchanted")){
-						if (!config.automaticRepair_noWarnings) player.sendMessage("§cYou dont have permission to repair enchanted items.");
+						if (!config.automaticRepair_noWarnings) player.sendMessage(ChatColor.RED + "You dont have permission to repair enchanted items.");
 						return false;
 					}
 				}
@@ -322,8 +325,9 @@ public class AutoRepairPlugin extends JavaPlugin {
 	public HashMap<String, Object> readConfig() {
 		String fileName = "plugins/AutoRepair/Config.properties";
 		HashMap<String, Object> settings = new HashMap<String, Object>();
+		BufferedReader reader;
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader(fileName));
+			reader = new BufferedReader(new FileReader(fileName));
 			String line;
 			String setting = null;
 			String value = null;
@@ -337,6 +341,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 				value = line.substring(keyPosition +1, line.length());
 				settings.put(setting, value);
 			}			
+			reader.close();
 		}catch (Exception e) {
 			log.info("Error reading AutoRepair config");
 			//If we do fail to read the config files, this means that autorepair will fail without notification,
@@ -424,21 +429,22 @@ public class AutoRepairPlugin extends JavaPlugin {
 						config.econCostUse = false;
 						config.xpCostUse = false;
 						config.itemCostUse = false;
-					}
-					else
-					{
-						if (getSettings().get("economy").toString().equalsIgnoreCase("true") || getSettings().get("economy").toString().equalsIgnoreCase("both"))
-						{
+					} else {
+						if (getSettings().get("economy").toString().equalsIgnoreCase("true")
+								|| getSettings().get("economy").toString().equalsIgnoreCase("both")) {
 							if (getSettings().get("economy").toString().equalsIgnoreCase("true")) 
 								config.itemCostUse = false;
-							if (getSettings().containsKey("econ_fractioning") && getSettings().get("econ_fractioning").toString().equalsIgnoreCase("on"))
+							if (getSettings().containsKey("econ_fractioning")
+									&& getSettings().get("econ_fractioning").toString().equalsIgnoreCase("on"))
 								config.econCostAdjust = true;
 						}
-						if (getSettings().get("economy").toString().equalsIgnoreCase("false") || getSettings().get("economy").toString().equalsIgnoreCase("both"))
-						{
+						if (getSettings().get("economy").toString().equalsIgnoreCase("false")
+								|| getSettings().get("economy").toString().equalsIgnoreCase("both")) {
 							if (getSettings().get("economy").toString().equalsIgnoreCase("false")) 
 								config.econCostUse = false;
-							if (getSettings().containsKey("item_rounding") && (getSettings().get("item_rounding").toString().equalsIgnoreCase("min") || getSettings().get("item_rounding").toString().equalsIgnoreCase("round")))
+							if (getSettings().containsKey("item_rounding")
+									&& (getSettings().get("item_rounding").toString().equalsIgnoreCase("min")
+											|| getSettings().get("item_rounding").toString().equalsIgnoreCase("round")))
 								config.itemCostAdjust = true;
 						}
 					}
@@ -455,7 +461,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 	public void convertOldRepairCosts() {
 		try {
 			RepairRecipe recipe;
-			HashMap<String, ArrayList<ItemStack> > map = new HashMap<String, ArrayList<ItemStack> >();
+			HashMap<String, ArrayList<ItemStack>> map = new HashMap<String, ArrayList<ItemStack>>();
 			HashMap<String, Double> iConomy = new HashMap<String, Double>();
 			HashMap<String, Integer> durab = new HashMap<String, Integer>();
 			String fileName = "plugins/AutoRepair/RepairCosts.properties";

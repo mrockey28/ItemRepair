@@ -6,6 +6,7 @@ import java.util.Set;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
 /**This is a composition class made to extend the functionality of the Bukkit API implementation of ItemStack.
  * It's a composition of {@link ItemStack} and {@link RepairRecipe} (my own custom class).
@@ -28,6 +29,8 @@ public class ItemStackPlus{
 	 * @param Resulting {@link ItemStackPlus}
 	 */
 	public ItemStackPlus(ItemStack stack) {
+		if (stack == null)
+			stack = new ItemStack(Material.AIR);
 		
 		item = stack;
 		isRepairable = AutoRepairPlugin.recipes.containsKey(stack.getType().getId());
@@ -64,7 +67,12 @@ public class ItemStackPlus{
 		ItemStackPlus newitem = new ItemStackPlus(stack);
 		return newitem;
 	}
-	
+	public static ItemStackPlus convert(PlayerInventory inv) {
+		ItemStack item = inv.getItemInMainHand();
+		if (item == null)
+			item = inv.getItemInOffHand();
+		return convert(item);
+	}
 	/**Gets the specific human-readable name of the item.
 	 * getName
 	 * String ItemStackPlus getName

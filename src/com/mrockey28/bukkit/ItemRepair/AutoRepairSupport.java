@@ -18,6 +18,7 @@ import org.bukkit.inventory.PlayerInventory;
 
 import com.mrockey28.bukkit.ItemRepair.AutoRepairPlugin.operationType;
 
+import net.md_5.bungee.api.ChatColor;
 /**
  * 
  * @author lostaris, mrockey28
@@ -36,7 +37,7 @@ public class AutoRepairSupport {
 	public void deduct(ArrayList<ItemStack> req) {
 		PlayerInventory inven = player.getInventory();
 		for (int i =0; i < req.size(); i++) {
-			ItemStack currItem = new ItemStack(req.get(i).getTypeId(), req.get(i).getAmount());
+			ItemStack currItem = new ItemStack(req.get(i).getType(), req.get(i).getAmount());
 			int neededAmount = req.get(i).getAmount();
 			int smallestSlot = findSmallest(currItem);
 			if (smallestSlot != -1) {
@@ -68,11 +69,11 @@ public class AutoRepairSupport {
 		tool.setAdjustedCosts(AutoRepairPlugin.config);
 		
 		if (!AutoRepairPlugin.config.isAnyCost() || tool.freeRepairs()) {
-			getPlayer().sendMessage("§3No materials needed to repair.");
+			getPlayer().sendMessage(ChatColor.DARK_AQUA + "No materials needed to repair.");
 			return;
 		}
 		
-		String queryResponse = "§6It costs";
+		String queryResponse = ChatColor.GOLD + "It costs";
 		if (AutoRepairPlugin.config.econCostUse && tool.getRepairCosts().getEconCost() != 0)	
 			queryResponse = queryResponse + " " + AutoRepairPlugin.econ.format(tool.getRepairCosts().getEconCost()) + ",";
 
@@ -99,7 +100,8 @@ public class AutoRepairSupport {
 		
 		if (!AutoRepairPlugin.config.automaticRepair_allow || !AutoRepairPlugin.isOpAllowed(getPlayer(), operationType.AUTO_REPAIR, tool.isEnchanted(), 0)) {
 			if (!AutoRepairPlugin.config.automaticRepair_noWarnings) 
-				player.sendMessage("§6WARNING: " + tool.getName() + " will break soon; this item will not auto repair.");
+				player.sendMessage(ChatColor.GOLD + 
+						"WARNING: " + tool.getName() + " will break soon; this item will not auto repair.");
 			return;
 		}
 		
@@ -115,7 +117,7 @@ public class AutoRepairSupport {
 		String warnResponse = "";
 		if (AutoRepairPlugin.config.econCostUse) {
 
-			double balance = AutoRepairPlugin.econ.getBalance(player.getName());
+			double balance = AutoRepairPlugin.econ.getBalance(player);
 			if (tool.getRepairCosts().getEconCost() > balance) {
 				warnResponse = warnResponse + " " + AutoRepairPlugin.econ.format(tool.getRepairCosts().getEconCost()) + ",";
 			}	
@@ -137,10 +139,10 @@ public class AutoRepairSupport {
 		if (warnResponse.length() != 0)
 		{
 			if (!alreadyAdjustedCosts)
-				player.sendMessage("§6WARNING: " + tool.getName() + " will break soon.");
+				player.sendMessage(ChatColor.GOLD + "WARNING: " + tool.getName() + " will break soon.");
 			
 			warnResponse = warnResponse.substring(0, warnResponse.length() -1);
-			warnResponse = "§cYou still need the following to be able to repair:" + warnResponse;
+			warnResponse = ChatColor.RED + "You still need the following to be able to repair:" + warnResponse;
 			player.sendMessage(warnResponse);
 		}
 	}
@@ -168,7 +170,7 @@ public class AutoRepairSupport {
 		if (!tool.isRepairable)
 		{
 			if (op == operationType.MANUAL_REPAIR || op == operationType.SIGN_REPAIR)
-				player.sendMessage("§c" + tool.getName() + " is not repairable.");
+				player.sendMessage(ChatColor.RED + tool.getName() + " is not repairable.");
 			return;
 		}
 		
@@ -176,7 +178,7 @@ public class AutoRepairSupport {
 		if (tool.item.getDurability() == 0)
 		{
 			if (op == operationType.MANUAL_REPAIR || op == operationType.SIGN_REPAIR)
-				player.sendMessage("§3" + tool.getName() + " is already fully repaired.");
+				player.sendMessage(ChatColor.DARK_AQUA + tool.getName() + " is already fully repaired.");
 			return;
 		}
 
@@ -186,11 +188,11 @@ public class AutoRepairSupport {
 		if (!AutoRepairPlugin.config.isAnyCost() && tool.freeRepairs()) {
 			repItem(tool);
 			if (op != operationType.FULL_REPAIR && !(op == operationType.AUTO_REPAIR && AutoRepairPlugin.config.automaticRepair_noNotifications))
-				getPlayer().sendMessage("§3Repaired " + tool.getName());
+				getPlayer().sendMessage(ChatColor.DARK_AQUA + "Repaired " + tool.getName());
 			return;
 		}
 		
-		String repairResponse = "§3Using";
+		String repairResponse = ChatColor.DARK_AQUA + "Using";
 		if (AutoRepairPlugin.config.econCostUse && tool.getRepairCosts().getEconCost() != 0)
 		{
 			double balance = AutoRepairPlugin.econ.getBalance(player.getName());
@@ -291,11 +293,11 @@ public class AutoRepairSupport {
 		
 		if (!AutoRepairPlugin.config.isAnyCost() || (econTotal == 0 && xpTotal == 0 && repCost.isEmpty())) 
 				{
-			getPlayer().sendMessage("§3No materials needed to repair.");
+			getPlayer().sendMessage(ChatColor.DARK_AQUA + "No materials needed to repair.");
 			return;
 		}
 		
-		String queryResponse = "§6It costs";
+		String queryResponse = ChatColor.GOLD + "It costs";
 		if (AutoRepairPlugin.config.econCostUse && econTotal != 0)	
 			queryResponse = queryResponse + " " + AutoRepairPlugin.econ.format(econTotal) + ",";
 	
@@ -322,12 +324,12 @@ public class AutoRepairSupport {
 		if (AutoRepairPlugin.isAllowed(player, "info")) {
 			int usesLeft = tool.getUsesLeft();
 			if (usesLeft != -1) {
-				player.sendMessage("§3" + usesLeft + " uses left untill this tool breaks." );
+				player.sendMessage(ChatColor.DARK_AQUA + "" + usesLeft + " uses left untill this tool breaks.");
 			} else {
-				player.sendMessage("§6Can't get uses left for this item.");
+				player.sendMessage(ChatColor.GOLD + "Can't get uses left for this item.");
 			}
 		} else {
-			player.sendMessage("§cYou dont have permission to do the ? or dmg commands.");
+			player.sendMessage(ChatColor.RED + "You dont have permission to do the ? or dmg commands.");
 		}
 
 	}
@@ -335,7 +337,7 @@ public class AutoRepairSupport {
 	@SuppressWarnings("rawtypes")
 	public int findSmallest(ItemStack item) {
 		PlayerInventory inven = player.getInventory();
-		HashMap<Integer, ? extends ItemStack> items = inven.all(item.getTypeId());
+		HashMap<Integer, ? extends ItemStack> items = inven.all(item.getType());
 		int slot = -1;
 		int smallest = 64;
 		//iterator for the hashmap
@@ -358,7 +360,7 @@ public class AutoRepairSupport {
 	public int getTotalItems(ItemStack item) {
 		int total = 0;
 		PlayerInventory inven = player.getInventory();
-		HashMap<Integer, ? extends ItemStack> items = inven.all(item.getTypeId());
+		HashMap<Integer, ? extends ItemStack> items = inven.all(item.getType());
 		//iterator for the hashmap
 		Set<?> set = items.entrySet();
 		Iterator<?> i = set.iterator();
@@ -375,7 +377,7 @@ public class AutoRepairSupport {
 	public boolean isEnoughItems (ArrayList<ItemStack> req, ArrayList<ItemStack> neededItems) {
 		boolean enough = true;
 		for (int i =0; i<req.size(); i++) {
-			ItemStack currItem = new ItemStack(req.get(i).getTypeId(), req.get(i).getAmount());
+			ItemStack currItem = new ItemStack(req.get(i).getType(), req.get(i).getAmount());
 			int neededAmount = req.get(i).getAmount();
 			int currTotal = getTotalItems(currItem);
 			if (neededAmount > currTotal) {
@@ -424,7 +426,7 @@ public class AutoRepairSupport {
 						if (((Sign)mSign.getState()).getLine(0).equalsIgnoreCase("Anvil"))
 						{
 							setPlayer(event.getPlayer());
-							plugin.repair.anvilRepair(ItemStackPlus.convert(event.getPlayer().getItemInHand()));
+							plugin.repair.anvilRepair(ItemStackPlus.convert(event.getPlayer().getInventory()));
 							return;
 						}
 					}
