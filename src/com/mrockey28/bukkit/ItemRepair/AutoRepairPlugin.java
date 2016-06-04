@@ -71,6 +71,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 		File f = new File("plugins/AutoRepair/config.yml");
 		if (!f.exists())
 		{
+			getConfig().options().copyDefaults(true);
 			String fileName = "plugins/AutoRepair/Config.properties";
 			f = new File(fileName);
 			if (f.exists()) {
@@ -82,7 +83,6 @@ public class AutoRepairPlugin extends JavaPlugin {
 				convertOldRepairCosts();	
 			}
 		}
-		getConfig().options().copyDefaults(true);
 		saveConfig();
 		refreshConfig();
 	}
