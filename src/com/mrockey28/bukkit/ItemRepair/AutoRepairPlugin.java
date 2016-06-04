@@ -15,8 +15,8 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-import net.md_5.bungee.api.ChatColor;
 import net.milkbowl.vault.economy.Economy;
+import org.bukkit.ChatColor;
 
 import com.mrockey28.bukkit.ItemRepair.RepairRecipe;
 
@@ -368,6 +368,7 @@ public class AutoRepairPlugin extends JavaPlugin {
 		}
 	}
 	
+
 	public void refreshRecipes() {
 		recipes.clear();
 		for(String key : getConfig().getConfigurationSection("recipes").getKeys(false)){			

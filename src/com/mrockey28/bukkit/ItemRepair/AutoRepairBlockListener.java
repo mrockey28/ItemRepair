@@ -8,13 +8,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -38,20 +36,16 @@ public class AutoRepairBlockListener implements Listener {
 //EVENT HANDLERS
 /////
 	@EventHandler
+	//This event handler should be capable of detecting most item damage, including:
+	//hoes, spades, pickaxes, axes, etc.
 	public void onPlayerInteract(PlayerInteractEvent event) {
-		support.checkForAnvilRepair(event);
+		
+		if (!support.isAnvilRepair(event))
+		{
+			eventAffectsItemInHand(event.getPlayer());
+		}
 	}
 	
-	@EventHandler
-	public void onBlockDamage(BlockDamageEvent event) {		
-		eventAffectsItemInHand(event.getPlayer());
-	}
-
-	@EventHandler
-	public void PlayerItemDamageEvent(PlayerItemDamageEvent event) {
-		if (event.getDamage() > 2)
-			event.setDamage(2);
-	}
 	@EventHandler
 	//Need to check item in hand for damager when something or someone is damaged
 	//as the damager could be using a sword or other breakable item
@@ -84,7 +78,7 @@ public class AutoRepairBlockListener implements Listener {
 	}
 	
 	@EventHandler
-	//This is only needed so bows autorepair
+	//This is only needed so fishing poles autorepair
 	public void onPlayerFishEvent(PlayerFishEvent event) {
 
 		eventAffectsItemInHand(event.getPlayer());

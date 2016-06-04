@@ -1,0 +1,6 @@
+bin/*
+dist/*
+*.prefs
+*.jar
+.classpath
+.project

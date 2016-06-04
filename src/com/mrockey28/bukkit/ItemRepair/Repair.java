@@ -5,10 +5,10 @@ import java.util.ArrayList;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.ChatColor;
 
 import com.mrockey28.bukkit.ItemRepair.AutoRepairPlugin.operationType;
 
-import net.md_5.bungee.api.ChatColor;
 
 public class Repair extends AutoRepairSupport{
 

@@ -15,10 +15,10 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.ChatColor;
 
 import com.mrockey28.bukkit.ItemRepair.AutoRepairPlugin.operationType;
 
-import net.md_5.bungee.api.ChatColor;
 /**
  * 
  * @author lostaris, mrockey28
@@ -185,7 +185,7 @@ public class AutoRepairSupport {
 		tool.setAdjustedCosts(AutoRepairPlugin.config);
 		
 		//No repair costs
-		if (!AutoRepairPlugin.config.isAnyCost() && tool.freeRepairs()) {
+		if (tool.freeRepairs()) {
 			repItem(tool);
 			if (op != operationType.FULL_REPAIR && !(op == operationType.AUTO_REPAIR && AutoRepairPlugin.config.automaticRepair_noNotifications))
 				getPlayer().sendMessage(ChatColor.DARK_AQUA + "Repaired " + tool.getName());
@@ -195,7 +195,7 @@ public class AutoRepairSupport {
 		String repairResponse = ChatColor.DARK_AQUA + "Using";
 		if (AutoRepairPlugin.config.econCostUse && tool.getRepairCosts().getEconCost() != 0)
 		{
-			double balance = AutoRepairPlugin.econ.getBalance(player.getName());
+			double balance = AutoRepairPlugin.econ.getBalance(player);
 			if (tool.getRepairCosts().getEconCost() <= balance) 
 			{
 				repairResponse = repairResponse + " " + AutoRepairPlugin.econ.format(tool.getRepairCosts().getEconCost()) + ",";	
@@ -208,7 +208,7 @@ public class AutoRepairSupport {
 		} 
 		
 		if (AutoRepairPlugin.config.xpCostUse && tool.getRepairCosts().getXpCost() != 0) 
-		{	
+		{
 			int xpBalance = player.getTotalExperience();
 			if (tool.getRepairCosts().getXpCost() <= xpBalance) 
 			{
@@ -236,7 +236,7 @@ public class AutoRepairSupport {
 		}
 
 		if (AutoRepairPlugin.config.econCostUse && tool.getRepairCosts().getEconCost() != 0) 
-			AutoRepairPlugin.econ.withdrawPlayer(player.getName(), tool.getRepairCosts().getEconCost());
+			AutoRepairPlugin.econ.withdrawPlayer(player, tool.getRepairCosts().getEconCost());
 		if (AutoRepairPlugin.config.xpCostUse && tool.getRepairCosts().getXpCost() != 0)
 		{
 			int totalExp = player.getTotalExperience();
@@ -398,11 +398,11 @@ public class AutoRepairSupport {
 		return returnString;
 	}
 	
-	public void checkForAnvilRepair(PlayerInteractEvent event)
+	public boolean isAnvilRepair(PlayerInteractEvent event)
 	{
 		if (!AutoRepairPlugin.config.anvilUse_allow)
 		{
-			return;
+			return false;
 		}
 		
 		if (event.getAction() == Action.RIGHT_CLICK_BLOCK)
@@ -427,12 +427,13 @@ public class AutoRepairSupport {
 						{
 							setPlayer(event.getPlayer());
 							plugin.repair.anvilRepair(ItemStackPlus.convert(event.getPlayer().getInventory()));
-							return;
+							return true;
 						}
 					}
 				}
 			}
 		}
+		return false;
 	}
 
 	public boolean getWarning() {

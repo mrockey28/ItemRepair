@@ -8,6 +8,8 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
+import com.mrockey28.bukkit.ItemRepair.RepairRecipe.recipe;
+
 /**This is a composition class made to extend the functionality of the Bukkit API implementation of ItemStack.
  * It's a composition of {@link ItemStack} and {@link RepairRecipe} (my own custom class).
  * It's probably not good practice to have made it directly reliant on my plugin itsself, but whatever.
@@ -133,10 +135,35 @@ public class ItemStackPlus{
 	public boolean freeRepairs()
 	{
 		if (repairCosts.enchanted.valid == true && this.isEnchanted())
-			return false;
+		{
+			AutoRepairPlugin.log.info("hit 4");
+			return freeRepairsUnderCurrentConfig(repairCosts.enchanted);
+		}
 		else if (repairCosts.normal.valid == true)
+		{
+			AutoRepairPlugin.log.info("hit 5");
+			return freeRepairsUnderCurrentConfig(repairCosts.normal);
+		}
+		return true;
+	}
+	
+	public boolean freeRepairsUnderCurrentConfig(recipe Recipe)
+	{
+		if (AutoRepairPlugin.config.xpCostUse && Recipe.getXpCost() != 0)
+		{
+			AutoRepairPlugin.log.info("hit 1");
 			return false;
-
+		}
+		else if (AutoRepairPlugin.config.econCostUse && Recipe.getEconCost() != 0)
+		{
+			AutoRepairPlugin.log.info("hit 2");
+			return false;
+		}
+		else if (AutoRepairPlugin.config.itemCostUse && !Recipe.getItemCost().isEmpty())
+		{
+			AutoRepairPlugin.log.info("hit 3");
+			return false;
+		}
 		return true;
 	}
 	
