@@ -206,9 +206,17 @@ public class RepairRecipe implements ConfigurationSerializable, Cloneable{
 				keys.remove("permission-group");
 			}
 			for (String i : keys) {
-				ItemStack item = new ItemStack(Material.getMaterial(i));
-				item.setAmount(config.getInt(pathPrefix + "." + i));
-				repairItems.add(item.clone());
+			    Material material = Material.getMaterial(i);
+			    if (material == null)
+			    {
+			    	AutoRepairPlugin.log.severe(String.format("Material \"%s\" is not a valid material for use in repairs.", i));
+			    }
+			    else
+			    {
+			    	ItemStack item = new ItemStack(Material.getMaterial(i));
+			    	item.setAmount(config.getInt(pathPrefix + "." + i));
+			    	repairItems.add(item.clone());
+			    }
 			}
 
 			checkForValidState();
