@@ -2,6 +2,8 @@ package com.mrockey28.bukkit.ItemRepair;
 
 
 
+import java.util.List;
+
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -15,6 +17,7 @@ import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.MetadataValue;
 
 
 /**
@@ -139,6 +142,25 @@ public class AutoRepairBlockListener implements Listener {
 		if (dmg == 0){
 			return;
 		} 
+
+		//If player has disabled autorepair on themselves, don't do anything.
+		//If a player is not allowed to disable autorepair on themselves, don't even
+		//do this check. This way, they can't get stuck in a state where they disabled
+		//autorepair and then got permissions taken away and are permanantly stuck in autorep-disabled.
+		if (AutoRepairPlugin.isAllowed(player, "auto.disable"))
+		{
+			List<MetadataValue> metadata = player.getMetadata("CanAutorepair");
+			for (MetadataValue value : metadata)
+			{
+				if (value.getOwningPlugin() == this.plugin)
+				{
+					if (value.asBoolean() == false)
+					{
+						return;
+					}
+				}
+			}
+		}
 		
 		if (dmg ==1) {
 			support.setWarning(false);

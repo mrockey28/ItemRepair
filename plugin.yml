@@ -1,6 +1,6 @@
 name: AutoRepair
 main: com.mrockey28.bukkit.ItemRepair.AutoRepairPlugin
-version: 2.15
+version: 2.16
 authors: [mrockey28, lostaris]
 softdepend: [Vault, PermissionsBukkit]
 commands:
@@ -18,6 +18,8 @@ commands:
        '/<command> arm ?' Check armour repair materials.
        '/<command> all' Repair all items, if possible.
        '/<command> reload' Reloads the config files.
+       '/<command> disable' Disable autorepair for yourself
+       '/<command> enable' Re-enable autorepair for yourself (after disabling)
        
 permissions:
   AutoRepair.access:
@@ -40,6 +42,9 @@ permissions:
     default: false
   AutoRepair.auto:
     description: Allows autorepair to work on users' items
+    default: false
+  AutoRepair.auto.disable:
+    description: Allows users to disable autorepair on their items
     default: false
   AutoRepair.reload:
     description: Allows use of the reload command, to reload the config files

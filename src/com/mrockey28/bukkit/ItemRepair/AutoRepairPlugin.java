@@ -17,6 +17,7 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.ChatColor;
+import org.bukkit.metadata.FixedMetadataValue;
 
 import com.mrockey28.bukkit.ItemRepair.RepairRecipe;
 
@@ -191,7 +192,25 @@ public class AutoRepairPlugin extends JavaPlugin {
 						} else {
 							player.sendMessage(ChatColor.RED + "You dont have permission to do the reload command.");
 						}
-					}else {
+					}  else if (split[0].equalsIgnoreCase("disable")) {
+						if (isAllowed(player, "repair") && isAllowed(player, "repcommands") 
+								&& isAllowed(player, "auto") && isAllowed(player, "auto.disable")) {
+							player.sendMessage(ChatColor.DARK_AQUA + "Disabled autorepair. Use '/rep enable' to re-enable.");
+							player.setMetadata("CanAutorepair", new FixedMetadataValue(this, false));
+						}
+						else {
+							player.sendMessage(ChatColor.RED + "You don't have permission to do that.");
+						}
+					}  else if (split[0].equalsIgnoreCase("enable")) {
+						if (isAllowed(player, "repair") && isAllowed(player, "repcommands") 
+								&& isAllowed(player, "auto") && isAllowed(player, "auto.disable")) {
+							player.sendMessage(ChatColor.DARK_AQUA + "Enabled autorepair.");
+							player.setMetadata("CanAutorepair", new FixedMetadataValue(this, true));
+						}
+						else {
+							player.sendMessage(ChatColor.RED + "You don't have permission to do that.");
+						}
+					}  else {
 						if (isAllowed(player, "repair") && isAllowed(player, "repcommands")) {
 							itemSlot = Integer.parseInt(split[0]);
 							if (itemSlot >0 && itemSlot <=9) {

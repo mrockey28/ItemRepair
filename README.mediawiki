@@ -1,4 +1,4 @@
-v2.15
+v2.16
 
 ==Credits==
 A lot of credit goes to lostaris; I heavily adapted his original plugin to make this compatible with Vault, support the latest versions, etc.
@@ -12,11 +12,18 @@ A lot of credit goes to lostaris; I heavily adapted his original plugin to make 
 *Economy support through Vault
 *Repairs can be set to have varying cost depending on how damaged the item is
 *[NEW] Repair anvils can be constructed to force repairs to occur at a certain location.
+*[NEW] Per-player disabling via command is now supported.
 
 ==Features==
-Allows a player can repair their tools, either manually or automatically just before they break. Automatic repairing will trigger on hitting a block with a tool when the tool is about to break. This repairing can be done at the cost of a given amount of one or more materials, a set amount of money if an economy system is in use, a set amount of experience points deducted from the player's total, or for free.
+Allows a player can repair their tools, either manually or automatically just before they break. Automatic repairing will trigger on hitting a block with a tool when the tool is about to break. This repairing can be done at the cost of a given amount of one or more materials, a set amount of money if an economy system is in use, a set amount of experience points deducted from the player's total, or for free. Per-player disabling of autorepair is also supported.
 
 ===New===
+====Version 2.16====
+*Removing items from the recipes list is now officially supported. The config.yml will automatically generate the first time the plugin is started, and contain all supported items. If an item is removed, repair of that item is effectively disabled.
+*Added 'enable' and 'disable' commands that allow players to disable autorepair on themselves, if they like (and if they're given permissions to do so).
+*Hoes now properly autorepair.
+====Version 2.12====
+*Fishing poles now properly autorepair.
 ====Version 2.10====
 *Added new command alias: '/ar'
 *Added ability for items to be repaired in the recipe section to be specified as their item id, i.e. DIAMOND_SWORD could also be '276'. This should allow compatibility with weapon mods (however, this is untested! Looking for testing volunteers).
@@ -115,6 +122,7 @@ Available permission nodes are (case sensitive):
 *AutoRepair.repcommands -- allows manual commands to be used to repair items
 *AutoRepair.repair.enchanted - allows enchanted items to be repaired, if autorepair config is set accordingly
 *AutoRepair.auto -- enables AutoRepair of tools in a user's inventory
+*AutoRepair.auto.disable -- allows a player to disable autorepair via the '/rep disable' command.
 *AutoRepair.reload -- allows a user to reload the plugin
 *AutoRepair.itemgroup1 -- allows a user to repair items that have been set into item group 1 by the configuration
 *AutoRepair.itemgroup2 -- allows a user to repair items that have been set into item group 2 by the configuration
@@ -131,3 +139,5 @@ There are three command aliases: '/repair', '/rep', and '/ar'. For convenience, 
 *'/rep arm' repairs all of your currently equipped armour
 *'/rep arm ?' tells you what you need to repair your equipped armour
 *'/rep reload' reloads the config files
+*'/rep disable' Disable autorepair for yourself
+*'/rep enable' Re-enable autorepair for yourself (after disabling)
